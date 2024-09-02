@@ -13,7 +13,7 @@ type Config struct {
 func LoadConfig() (*Config, error) {
 	apiKey, exists := os.LookupEnv("NV_API_KEY")
 	if !exists {
-		return nil, fmt.Errorf("NV_API_KEY not set!")
+		return nil, fmt.Errorf("NV_API_KEY not set")
 	}
 
 	return &Config{
