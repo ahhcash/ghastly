@@ -4,8 +4,10 @@ go 1.21.5
 
 require (
 	github.com/andybalholm/brotli v1.1.0 // indirect
+	github.com/google/uuid v1.6.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/klauspost/compress v1.17.9 // indirect
+	github.com/ledongthuc/pdf v0.0.0-20240201131950-da5b75280b06 // indirect
 	github.com/mitchellh/colorstring v0.0.0-20190213212951-d06e56a500db // indirect
 	github.com/rivo/uniseg v0.1.0 // indirect
 	github.com/schollz/progressbar/v2 v2.15.0 // indirect

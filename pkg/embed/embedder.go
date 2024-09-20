@@ -1,5 +1,5 @@
 package embed
 
 type Embedder interface {
-	Embed(text []string) ([]float64, error)
+	Embed(text string) ([]float64, error)
 }
