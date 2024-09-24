@@ -28,7 +28,7 @@ func LoadNvidiaEmbedder() (*NvidiaEmbedder, error) {
 	}, nil
 }
 
-func (nv *NvidiaEmbedder) GetEmbeddings(input []string) (*NVEmbeddingResponse, error) {
+func (nv *NvidiaEmbedder) GetEmbeddings(input string) (*NVEmbeddingResponse, error) {
 	jsonBody, err2 := marshalRequest(input)
 	if err2 != nil {
 		return nil, err2
@@ -62,9 +62,9 @@ func (nv *NvidiaEmbedder) GetEmbeddings(input []string) (*NVEmbeddingResponse, e
 	return &nvResp, nil
 }
 
-func marshalRequest(input []string) ([]byte, error) {
+func marshalRequest(input string) ([]byte, error) {
 	reqBody := NVEmbeddingRequest{
-		Input:          input,
+		Input:          []string{input},
 		Model:          model,
 		InputType:      "query",
 		EncodingFormat: "float",
@@ -78,7 +78,7 @@ func marshalRequest(input []string) ([]byte, error) {
 	return jsonBody, nil
 }
 
-func (nv *NvidiaEmbedder) Embed(text []string) ([]float64, error) {
+func (nv *NvidiaEmbedder) Embed(text string) ([]float64, error) {
 	nvResp, err := nv.GetEmbeddings(text)
 	if err != nil {
 		return nil, err

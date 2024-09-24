@@ -2,7 +2,9 @@ package storage
 
 import (
 	"fmt"
+	"github.com/google/uuid"
 	"os"
+	"path/filepath"
 	"sort"
 	"sync"
 )
@@ -22,7 +24,7 @@ func NewMemtable(maxSize int) *Memtable {
 	}
 }
 
-func (m *Memtable) Put(key string, value []byte) {
+func (m *Memtable) Put(key string, value []byte, destPath string) {
 	m.lock.Lock()
 	defer m.lock.Unlock()
 
@@ -32,7 +34,12 @@ func (m *Memtable) Put(key string, value []byte) {
 	m.data[key] = value
 
 	if m.size >= m.maxSize {
-		m.flushToDisk()
+		destPath = filepath.Join(destPath, uuid.New().String()+".pkl")
+		err := m.FlushToDisk(destPath)
+		if err != nil {
+			panic(fmt.Errorf("could not flush memtable to disk: %v", err))
+		}
+		m.Clear()
 	}
 }
 
@@ -50,20 +57,20 @@ func (m *Memtable) Size() int {
 	return m.size
 }
 
-func (m *Memtable) flushToDisk() error {
+func (m *Memtable) FlushToDisk(destPath string) error {
 	m.lock.Lock()
 	defer m.lock.Unlock()
 
-	err := os.MkdirAll("./data/", 0777)
+	err := os.MkdirAll(filepath.Dir(destPath), 0777)
 	if err != nil {
 		return err
 	}
 
-	fileName := fmt.Sprintf("./data/sstable_%v", m.size)
-	file, err := os.Create(fileName)
+	file, err := os.Create(destPath)
 	if err != nil {
 		return err
 	}
+
 	defer func(file *os.File) {
 		err := file.Close()
 		if err != nil {
@@ -90,4 +97,9 @@ func (m *Memtable) flushToDisk() error {
 	m.size = 0
 
 	return nil
+}
+
+func (m *Memtable) Clear() {
+	m.data = make(map[string][]byte)
+	m.size = 0
 }
