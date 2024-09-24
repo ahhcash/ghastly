@@ -1,10 +1,13 @@
 package cmd
 
 import (
+	"encoding/base64"
 	"encoding/binary"
 	"fmt"
-	"github.com/aakashshankar/vexdb/pkg/embed/nvidia"
-	"github.com/aakashshankar/vexdb/pkg/storage"
+	"github.com/aakashshankar/vexdb/embed"
+	"github.com/aakashshankar/vexdb/embed/nvidia"
+	"github.com/aakashshankar/vexdb/storage"
+	"github.com/aakashshankar/vexdb/tokenize/bert"
 	"github.com/google/uuid"
 	"github.com/ledongthuc/pdf"
 	"github.com/spf13/cobra"
@@ -13,6 +16,10 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+)
+
+const (
+	nvidia_max_tokens = 512
 )
 
 var embedCmd = &cobra.Command{
@@ -43,8 +50,8 @@ var embedCmd = &cobra.Command{
 			if err != nil {
 				return err
 			}
-
-			if !info.IsDir() {
+			base := filepath.Base(path)
+			if !info.IsDir() && base[0] != '.' {
 				ext := strings.ToLower(filepath.Ext(path))
 
 				var content string
@@ -63,18 +70,13 @@ var embedCmd = &cobra.Command{
 					}
 				}
 
-				embeddings, err := embedder.Embed(content)
+				fmt.Printf("extracted content: %s\n", content)
+
+				err = embedContent(embedder, content, path, memtable, destPath)
 
 				if err != nil {
-					return fmt.Errorf("could not generate embeddings: %v", err)
+					return err
 				}
-
-				key := path
-				value := make([]byte, len(embeddings)*8)
-				for i, v := range embeddings {
-					binary.LittleEndian.PutUint64(value[i*8:], math.Float64bits(v))
-				}
-				memtable.Put(key, value, destPath)
 
 				fmt.Printf("Generated and stored embeddings for %s\n", path)
 			}
@@ -99,7 +101,39 @@ var embedCmd = &cobra.Command{
 	},
 }
 
+func embedContent(embedder embed.Embedder, content string, path string, memtable *storage.Memtable, destPath string) error {
+	tokenizer := bert.NewBertTokenize()
+
+	chunks, err := tokenizer.SplitTokens(content, nvidia_max_tokens)
+	if err != nil {
+		return err
+	}
+
+	for _, chunk := range chunks {
+		decoded, err := tokenizer.Decode(chunk)
+		if err != nil {
+			return err
+		}
+
+		embeddings, err := embedder.Embed(decoded)
+		if err != nil {
+			return err
+		}
+
+		key := path
+		value := make([]byte, len(embeddings)*8)
+		for i, v := range embeddings {
+			binary.LittleEndian.PutUint64(value[i*8:], math.Float64bits(v))
+		}
+		base64Encoded := base64.StdEncoding.EncodeToString(value)
+		memtable.Put(key, []byte(base64Encoded), destPath)
+	}
+
+	return nil
+}
+
 func extractTextFromPDF(path string) (string, error) {
+	fmt.Printf("reading from pdf: %s\n", path)
 	f, r, err := pdf.Open(path)
 	if err != nil {
 		return "", err

@@ -2,10 +2,11 @@ package cmd
 
 import (
 	"bufio"
+	"encoding/base64"
 	"encoding/binary"
 	"fmt"
-	"github.com/aakashshankar/vexdb/pkg/embed/nvidia"
-	"github.com/aakashshankar/vexdb/pkg/search"
+	"github.com/aakashshankar/vexdb/embed/nvidia"
+	"github.com/aakashshankar/vexdb/search"
 	"github.com/spf13/cobra"
 	"math"
 	"os"
@@ -87,7 +88,11 @@ func readEmbeddingsFile(filePath string) (map[string][]float64, error) {
 		}
 
 		path := parts[0]
-		embeddingBytes := []byte(parts[1])
+		embeddingBytes, err := base64.StdEncoding.DecodeString(parts[1])
+
+		if err != nil {
+			return nil, err
+		}
 
 		embedding := make([]float64, len(embeddingBytes)/8)
 		for i := 0; i < len(embedding); i++ {
