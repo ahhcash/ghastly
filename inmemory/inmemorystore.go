@@ -3,7 +3,7 @@ package inmemory
 import (
 	"errors"
 	"fmt"
-	"github.com/aakashshankar/vexdb/pkg/search"
+	"github.com/aakashshankar/vexdb/search"
 	"sort"
 	"sync"
 )
