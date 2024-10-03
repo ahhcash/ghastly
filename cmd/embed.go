@@ -1,31 +1,28 @@
 package cmd
 
 import (
-	"encoding/base64"
-	"encoding/binary"
 	"fmt"
 	"github.com/aakashshankar/vexdb/embed"
-	"github.com/aakashshankar/vexdb/embed/nvidia"
+	"github.com/aakashshankar/vexdb/embed/openai"
 	"github.com/aakashshankar/vexdb/storage"
 	"github.com/aakashshankar/vexdb/tokenize/bert"
-	"github.com/google/uuid"
 	"github.com/ledongthuc/pdf"
 	"github.com/spf13/cobra"
 	"io"
-	"math"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 )
 
 const (
-	nvidia_max_tokens = 512
+	openai_max_tokens = 8191
 )
 
 var embedCmd = &cobra.Command{
 	Use:   "embed [source path] [destination directory]",
 	Short: "Generate embeddings for a file",
-	Long:  `This command generates embeddings for the content of the specified file using the NVIDIA embedder.`,
+	Long:  `This command generates embeddings for the content of the specified file using the OpenAI embedder.`,
 	Args:  cobra.ExactArgs(2),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		sourceDir := args[0]
@@ -39,12 +36,12 @@ var embedCmd = &cobra.Command{
 
 		_ = os.MkdirAll(destPath, 0777)
 
-		embedder, err := nvidia.LoadNvidiaEmbedder()
+		embedder, err := openai.NewOpenAIEmbedder()
 		if err != nil {
-			return fmt.Errorf("error initializing NVIDIA embedder: %w", err)
+			return fmt.Errorf("error initializing embedder: %w", err)
 		}
-
-		memtable := storage.NewMemtable(1000)
+		// FATAL: Will not flush to disk if data is less
+		store := storage.NewStore(100, destPath)
 
 		err = filepath.Walk(sourceDir, func(path string, info os.FileInfo, err error) error {
 			if err != nil {
@@ -72,7 +69,7 @@ var embedCmd = &cobra.Command{
 
 				fmt.Printf("extracted content: %s\n", content)
 
-				err = embedContent(embedder, content, path, memtable, destPath)
+				err = embedContentAndStore(embedder, content, path, store)
 
 				if err != nil {
 					return err
@@ -87,29 +84,21 @@ var embedCmd = &cobra.Command{
 			return fmt.Errorf("error processing files in %s: %w", sourceDir, err)
 		}
 
-		if memtable.Size() > 0 {
-			err := memtable.FlushToDisk(filepath.Join(destPath, uuid.New().String()+".pkl"))
-			if err != nil {
-				return fmt.Errorf("could not flush memtable to disk: %v", err)
-			}
-
-		}
-
 		fmt.Printf("Embeddings in %s stored at %s\n", sourceDir, destPath)
 
 		return nil
 	},
 }
 
-func embedContent(embedder embed.Embedder, content string, path string, memtable *storage.Memtable, destPath string) error {
+func embedContentAndStore(embedder embed.Embedder, content string, path string, store *storage.Store) error {
 	tokenizer := bert.NewBertTokenize()
 
-	chunks, err := tokenizer.SplitTokens(content, nvidia_max_tokens)
+	chunks, err := tokenizer.SplitTokens(content, openai_max_tokens)
 	if err != nil {
 		return err
 	}
 
-	for _, chunk := range chunks {
+	for i, chunk := range chunks {
 		decoded, err := tokenizer.Decode(chunk)
 		if err != nil {
 			return err
@@ -120,13 +109,11 @@ func embedContent(embedder embed.Embedder, content string, path string, memtable
 			return err
 		}
 
-		key := path
-		value := make([]byte, len(embeddings)*8)
-		for i, v := range embeddings {
-			binary.LittleEndian.PutUint64(value[i*8:], math.Float64bits(v))
+		key := path + ":" + strconv.Itoa(i)
+		err = store.Put(key, embeddings)
+		if err != nil {
+			return err
 		}
-		base64Encoded := base64.StdEncoding.EncodeToString(value)
-		memtable.Put(key, []byte(base64Encoded), destPath)
 	}
 
 	return nil
