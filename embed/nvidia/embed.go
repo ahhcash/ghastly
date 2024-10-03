@@ -8,7 +8,8 @@ import (
 )
 
 const (
-	model = "nvidia/nv-embedqa-mistral-7b-v2"
+	model      = "nvidia/nv-embedqa-mistral-7b-v2"
+	apiBaseUrl = "https://integrate.api.nvidia.com"
 )
 
 type NvidiaEmbedder struct {
@@ -23,7 +24,7 @@ func LoadNvidiaEmbedder() (*NvidiaEmbedder, error) {
 	}
 
 	return &NvidiaEmbedder{
-		apiBaseUrl: "https://integrate.api.nvidia.com/",
+		apiBaseUrl: apiBaseUrl,
 		apiKey:     apiKey,
 	}, nil
 }
