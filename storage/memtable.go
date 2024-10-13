@@ -11,7 +11,7 @@ import (
 )
 
 type Memtable struct {
-	data    map[string][]byte
+	Data    map[string][]byte
 	lock    sync.RWMutex
 	maxSize int
 	size    int
@@ -19,7 +19,7 @@ type Memtable struct {
 
 func NewMemtable(maxSize int) *Memtable {
 	return &Memtable{
-		data:    make(map[string][]byte),
+		Data:    make(map[string][]byte),
 		maxSize: maxSize,
 		size:    0,
 	}
@@ -33,13 +33,13 @@ func (m *Memtable) Put(key string, vector []float64, destPath string) error {
 	var err error
 
 	if vector != nil {
-		value, err = serializeVector(vector)
+		value, err = SerializeVector(vector)
 		if err != nil {
 			return fmt.Errorf("error when serializing data: %v", err)
 		}
 	}
 
-	_, exists := m.data[key]
+	_, exists := m.Data[key]
 	if !exists {
 		m.size++
 	}
@@ -48,7 +48,7 @@ func (m *Memtable) Put(key string, vector []float64, destPath string) error {
 		return fmt.Errorf("could not write data into memtable: %v", err)
 	}
 
-	m.data[key] = value
+	m.Data[key] = value
 
 	if m.size >= m.maxSize {
 		err := m.flushToDisk(destPath)
@@ -61,7 +61,7 @@ func (m *Memtable) Put(key string, vector []float64, destPath string) error {
 	return nil
 }
 
-func serializeVector(vector []float64) ([]byte, error) {
+func SerializeVector(vector []float64) ([]byte, error) {
 	buf := make([]byte, 8*len(vector))
 	for i, v := range vector {
 		binary.LittleEndian.PutUint64(buf[i*8:], math.Float64bits(v))
@@ -73,12 +73,12 @@ func (m *Memtable) Get(key string) ([]float64, bool) {
 	m.lock.RLock()
 	defer m.lock.RUnlock()
 
-	value, exists := m.data[key]
+	value, exists := m.Data[key]
 	if !exists {
 		return nil, false
 	}
 
-	vector, err := deserializeVector(value)
+	vector, err := DeserializeVector(value)
 	if err != nil {
 		panic(fmt.Errorf("could not deserialize vector: %v", err))
 	}
@@ -86,7 +86,7 @@ func (m *Memtable) Get(key string) ([]float64, bool) {
 	return vector, exists
 }
 
-func deserializeVector(data []byte) ([]float64, error) {
+func DeserializeVector(data []byte) ([]float64, error) {
 	vector := make([]float64, len(data)/8)
 	for i := range vector {
 		bits := binary.LittleEndian.Uint64(data[i*8:])
@@ -122,7 +122,7 @@ func (m *Memtable) flushToDisk(destPath string) error {
 		}
 	}(file)
 
-	for key, val := range m.data {
+	for key, val := range m.Data {
 		err := writeRecord(file, key, val)
 		if err != nil {
 			return fmt.Errorf("could not write record: %v", err)
@@ -162,6 +162,6 @@ func writeRecord(file *os.File, key string, value []byte) error {
 }
 
 func (m *Memtable) clear() {
-	m.data = make(map[string][]byte)
+	m.Data = make(map[string][]byte)
 	m.size = 0
 }

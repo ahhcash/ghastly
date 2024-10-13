@@ -10,7 +10,7 @@ import (
 
 type SSTable struct {
 	file      *os.File
-	index     []string
+	Index     []string
 	positions []int64
 }
 
@@ -22,7 +22,7 @@ func OpenSSTable(filename string) (*SSTable, error) {
 
 	sst := &SSTable{
 		file:      file,
-		index:     []string{},
+		Index:     []string{},
 		positions: []int64{},
 	}
 
@@ -64,7 +64,7 @@ func (sst *SSTable) buildIndex() error {
 			return err
 		}
 
-		sst.index = append(sst.index, key)
+		sst.Index = append(sst.Index, key)
 		sst.positions = append(sst.positions, offset)
 
 		offset, err = sst.file.Seek(0, io.SeekCurrent)
@@ -81,8 +81,8 @@ func (sst *SSTable) Close() error {
 }
 
 func (sst *SSTable) Get(key string) ([]float64, bool, error) {
-	i := sort.SearchStrings(sst.index, key)
-	if i >= len(sst.index) || sst.index[i] != key {
+	i := sort.SearchStrings(sst.Index, key)
+	if i >= len(sst.Index) || sst.Index[i] != key {
 		return nil, false, nil
 	}
 
@@ -115,7 +115,7 @@ func (sst *SSTable) Get(key string) ([]float64, bool, error) {
 		return nil, false, fmt.Errorf("could not read value bytes: %v", err)
 	}
 
-	vector, err := deserializeVector(valueBytes)
+	vector, err := DeserializeVector(valueBytes)
 	if err != nil {
 		return nil, false, fmt.Errorf("could not deserialize value bytes: %v", err)
 	}
