@@ -7,17 +7,17 @@ import (
 )
 
 type Store struct {
-	memtable *Memtable
-	sstables []*SSTable
+	Memtable *Memtable
+	Sstables []*SSTable
 	lock     sync.RWMutex
-	destDir  string
+	DestDir  string
 }
 
 func NewStore(maxSize int, desDir string) *Store {
 	return &Store{
-		memtable: NewMemtable(maxSize),
-		sstables: []*SSTable{},
-		destDir:  desDir,
+		Memtable: NewMemtable(maxSize),
+		Sstables: []*SSTable{},
+		DestDir:  desDir,
 	}
 }
 
@@ -25,12 +25,12 @@ func (s *Store) Put(key string, vector []float64) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
-	err := s.memtable.Put(key, vector, s.destDir)
+	err := s.Memtable.Put(key, vector, s.DestDir)
 	if err != nil {
 		return fmt.Errorf("could not Put data into memtable: %v", err)
 	}
 
-	if s.memtable.Size() == 0 {
+	if s.Memtable.Size() == 0 {
 		err = s.loadNewSSTable()
 		if err != nil {
 			return fmt.Errorf("failed to load SSTable: %v", err)
@@ -43,12 +43,12 @@ func (s *Store) Get(key string) ([]float64, bool) {
 	s.lock.RLock()
 	defer s.lock.RUnlock()
 
-	vector, exists := s.memtable.Get(key)
+	vector, exists := s.Memtable.Get(key)
 	if exists {
 		return vector, true
 	}
 
-	for _, sstable := range s.sstables {
+	for _, sstable := range s.Sstables {
 		vector, exists, _ = sstable.Get(key)
 
 		if exists {
@@ -61,7 +61,7 @@ func (s *Store) Get(key string) ([]float64, bool) {
 }
 
 func (s *Store) loadNewSSTable() error {
-	files, err := filepath.Glob(filepath.Join(s.destDir, "*.sst"))
+	files, err := filepath.Glob(filepath.Join(s.DestDir, "*.sst"))
 	if err != nil {
 		return err
 	}
@@ -80,7 +80,7 @@ func (s *Store) loadNewSSTable() error {
 	}
 
 	// Prepend to the list of SSTables
-	s.sstables = append([]*SSTable{sstable}, s.sstables...)
+	s.Sstables = append([]*SSTable{sstable}, s.Sstables...)
 
 	return nil
 }

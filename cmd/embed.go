@@ -41,7 +41,7 @@ var embedCmd = &cobra.Command{
 			return fmt.Errorf("error initializing embedder: %w", err)
 		}
 		// FATAL: Will not flush to disk if data is less
-		store := storage.NewStore(100, destPath)
+		store := storage.NewStore(1, destPath)
 
 		err = filepath.Walk(sourceDir, func(path string, info os.FileInfo, err error) error {
 			if err != nil {
