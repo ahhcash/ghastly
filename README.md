@@ -7,7 +7,6 @@ A Go-based vector database and search engine that supports multiple embedding pr
 - Multiple embedding providers supported:
   - OpenAI
   - NVIDIA
-  - ColBERT local embeddings
 - In-memory and persistent storage options
 - SSTable-based storage for durability
 - Cosine similarity search
@@ -20,7 +19,6 @@ The system consists of several key components:
 
 - **Embedding Layer**: Supports multiple embedding providers (OpenAI, NVIDIA, ColBERT)
 - **Storage Layer**: 
-  - In-memory store for fast access
   - SSTable-based persistent storage
   - Memtable for write buffering
 - **Search**: Implements cosine similarity for vector comparison
