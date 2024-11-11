@@ -83,7 +83,7 @@ func (s *SkipList) Insert(key string, value []byte) {
 	// Move to the next node at base level
 	current = current.next[0]
 
-	// If key already exists, update the value
+	// If key already exists, update the Value
 	if current != nil && current.key == key {
 		current.value = value
 		return

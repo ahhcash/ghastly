@@ -2,35 +2,55 @@ package storage
 
 import (
 	"fmt"
+	"github.com/aakashshankar/vexdb/embed"
+	"github.com/aakashshankar/vexdb/search"
 	"path/filepath"
+	"sort"
 	"sync"
 )
 
-type Store struct {
-	Memtable *Memtable
-	Sstables []*SSTable
-	lock     sync.RWMutex
-	DestDir  string
+type Result struct {
+	key   string
+	value string
+	score float64
 }
 
-func NewStore(maxSize int, desDir string) *Store {
+type Store struct {
+	memtable *Memtable
+	sstables []*SSTable
+	lock     sync.RWMutex
+	destDir  string
+	model    embed.Embedder
+}
+
+func NewStore(maxSize int, desDir string, model embed.Embedder) *Store {
 	return &Store{
-		Memtable: NewMemtable(maxSize),
-		Sstables: []*SSTable{},
-		DestDir:  desDir,
+		memtable: NewMemtable(maxSize),
+		sstables: []*SSTable{},
+		destDir:  desDir,
+		model:    model,
 	}
 }
 
-func (s *Store) Put(key string, vector []float64) error {
+func (s *Store) Put(key string, value string) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
-	err := s.Memtable.Put(key, vector, s.DestDir)
+	vector, err := s.model.Embed(value)
+	if err != nil {
+		return fmt.Errorf("could not embed Value %s: %v", value, err)
+	}
+
+	entry := Entry{
+		Value:  value,
+		Vector: vector,
+	}
+	err = s.memtable.Put(key, entry, s.destDir)
 	if err != nil {
 		return fmt.Errorf("could not Put data into memtable: %v", err)
 	}
 
-	if s.Memtable.Size() == 0 {
+	if s.memtable.Size() == 0 {
 		err = s.loadNewSSTable()
 		if err != nil {
 			return fmt.Errorf("failed to load SSTable: %v", err)
@@ -39,37 +59,81 @@ func (s *Store) Put(key string, vector []float64) error {
 	return nil
 }
 
-func (s *Store) Get(key string) ([]float64, bool) {
+func (s *Store) Get(key string) (Entry, bool) {
 	s.lock.RLock()
 	defer s.lock.RUnlock()
 
-	vector, exists := s.Memtable.Get(key)
+	entry, exists := s.memtable.Get(key)
 	if exists {
-		return vector, true
+		return entry, true
 	}
 
-	for _, sstable := range s.Sstables {
-		vector, exists, _ = sstable.Get(key)
+	for _, sstable := range s.sstables {
+		entry, exists, _ = sstable.Get(key)
 
 		if exists {
-			return vector, true
+			return entry, true
 		}
 
 	}
 
-	return nil, false
+	return Entry{}, false
+}
+
+func (s *Store) Search(query string, metric string) ([]Result, error) {
+	queryVector, err := s.model.Embed(query)
+
+	if err != nil {
+		return nil, fmt.Errorf("could not embed query vector: %v", err)
+	}
+
+	var scoreFn func([]float64, []float64) float64
+
+	switch metric {
+	case "dot":
+		scoreFn = search.Dot
+	case "l2":
+		scoreFn = search.L2
+	case "cosine":
+		scoreFn = search.Cosine
+	}
+
+	results := make([]Result, 0)
+
+	for _, sstable := range s.sstables {
+		for _, key := range sstable.Index {
+			entry, exists, err := sstable.Get(key)
+			if err != nil {
+				return nil, fmt.Errorf("could not fetch key %s from sstable: %v", key, err)
+			}
+			if exists {
+				score := scoreFn(entry.Vector, queryVector)
+				results = append(results, Result{
+					key:   key,
+					value: entry.Value,
+					score: score,
+				})
+			}
+		}
+	}
+
+	sort.Slice(results, func(i, j int) bool {
+		return results[i].score > results[j].score
+	})
+
+	return results, nil
 }
 
 func (s *Store) Flush() error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
-	if s.Memtable.Size() > 0 {
-		err := s.Memtable.flushToDisk(s.DestDir)
+	if s.memtable.Size() > 0 {
+		err := s.memtable.flushToDisk(s.destDir)
 		if err != nil {
 			return fmt.Errorf("could not Flush memtable data to Disk: %v", err)
 		}
-		s.Memtable.Clear()
+		s.memtable.Clear()
 		err = s.loadNewSSTable()
 		if err != nil {
 			return fmt.Errorf("could not load SSTable: %v", err)
@@ -80,7 +144,7 @@ func (s *Store) Flush() error {
 }
 
 func (s *Store) loadNewSSTable() error {
-	files, err := filepath.Glob(filepath.Join(s.DestDir, "*.sst"))
+	files, err := filepath.Glob(filepath.Join(s.destDir, "*.sst"))
 	if err != nil {
 		return err
 	}
@@ -99,7 +163,7 @@ func (s *Store) loadNewSSTable() error {
 	}
 
 	// Prepend to the list of SSTables
-	s.Sstables = append([]*SSTable{sstable}, s.Sstables...)
+	s.sstables = append([]*SSTable{sstable}, s.sstables...)
 
 	return nil
 }

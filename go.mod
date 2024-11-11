@@ -4,8 +4,8 @@ go 1.21.5
 
 require (
 	github.com/google/uuid v1.6.0
-	github.com/ledongthuc/pdf v0.0.0-20240201131950-da5b75280b06
 	github.com/spf13/cobra v1.8.1
+	github.com/sugarme/tokenizer v0.2.2
 	github.com/sugarme/transformer v0.2.0
 	github.com/valyala/fasthttp v1.55.0
 )
@@ -22,7 +22,6 @@ require (
 	github.com/stretchr/testify v1.8.2 // indirect
 	github.com/sugarme/gotch v0.9.1 // indirect
 	github.com/sugarme/regexpset v0.0.0-20200920021344-4d4ec8eaf93c // indirect
-	github.com/sugarme/tokenizer v0.2.2 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	golang.org/x/text v0.16.0 // indirect
 )

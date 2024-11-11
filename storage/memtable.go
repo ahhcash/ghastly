@@ -7,12 +7,15 @@ import (
 	"math"
 	"os"
 	"path/filepath"
-	"sync"
 )
+
+type Entry struct {
+	Value  string
+	Vector []float64
+}
 
 type Memtable struct {
 	Data    *SkipList
-	lock    sync.RWMutex
 	maxSize int
 	size    int
 }
@@ -25,21 +28,15 @@ func NewMemtable(maxSize int) *Memtable {
 	}
 }
 
-func (m *Memtable) Put(key string, vector []float64, destPath string) error {
-	m.lock.Lock()
-	defer m.lock.Unlock()
-
+func (m *Memtable) Put(key string, entry Entry, destPath string) error {
 	var value []byte
 	var err error
 
-	if vector != nil {
-		value, err = SerializeVector(vector)
-		if err != nil {
-			return fmt.Errorf("error when serializing data: %v", err)
-		}
+	value, err = SerializeEntry(entry)
+	if err != nil {
+		return fmt.Errorf("error when serializing data: %v", err)
 	}
 
-	fmt.Printf("vectoer is serialized for memtable: %v", value)
 	_, exists := m.Data.Search(key)
 	if !exists {
 		m.size++
@@ -58,44 +55,49 @@ func (m *Memtable) Put(key string, vector []float64, destPath string) error {
 	return nil
 }
 
-func SerializeVector(vector []float64) ([]byte, error) {
-	buf := make([]byte, 8*len(vector))
-	for i, v := range vector {
-		binary.LittleEndian.PutUint64(buf[i*8:], math.Float64bits(v))
+func SerializeEntry(entry Entry) ([]byte, error) {
+	valueLen := int32(len(entry.Value))
+	buf := make([]byte, 4+valueLen+8*int32(len(entry.Vector)))
+
+	binary.LittleEndian.PutUint32(buf[0:], uint32(valueLen))
+	copy(buf[4:], entry.Value)
+
+	offset := 4 + valueLen
+	for i, v := range entry.Vector {
+		binary.LittleEndian.PutUint64(buf[offset+int32(i*8):], math.Float64bits(v))
 	}
+
 	return buf, nil
 }
 
-func (m *Memtable) Get(key string) ([]float64, bool) {
-	m.lock.RLock()
-	defer m.lock.RUnlock()
-
+func (m *Memtable) Get(key string) (Entry, bool) {
 	value, exists := m.Data.Search(key)
 	if !exists {
-		return nil, false
+		return Entry{}, false
 	}
 
-	vector, err := DeserializeVector(value)
+	entry, err := DeserializeEntry(value)
 	if err != nil {
 		panic(fmt.Errorf("could not deserialize vector: %v", err))
 	}
 
-	return vector, exists
+	return entry, exists
 }
 
-func DeserializeVector(data []byte) ([]float64, error) {
-	vector := make([]float64, len(data)/8)
+func DeserializeEntry(data []byte) (Entry, error) {
+	valueLen := binary.LittleEndian.Uint32(data[0:4])
+	value := string(data[4 : 4+valueLen])
+	vectorData := data[4+valueLen:]
+	vector := make([]float64, len(vectorData)/8)
 	for i := range vector {
-		bits := binary.LittleEndian.Uint64(data[i*8:])
+		bits := binary.LittleEndian.Uint64(vectorData[i*8:])
 		vector[i] = math.Float64frombits(bits)
 	}
 
-	return vector, nil
+	return Entry{Value: value, Vector: vector}, nil
 }
 
 func (m *Memtable) Size() int {
-	m.lock.RLock()
-	defer m.lock.RUnlock()
 	return m.size
 }
 

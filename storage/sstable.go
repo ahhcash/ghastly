@@ -80,45 +80,45 @@ func (sst *SSTable) Close() error {
 	return sst.file.Close()
 }
 
-func (sst *SSTable) Get(key string) ([]float64, bool, error) {
+func (sst *SSTable) Get(key string) (Entry, bool, error) {
 	i := sort.SearchStrings(sst.Index, key)
 	if i >= len(sst.Index) || sst.Index[i] != key {
-		return nil, false, nil
+		return Entry{}, false, nil
 	}
 
 	_, err := sst.file.Seek(sst.positions[i], io.SeekStart)
 	if err != nil {
-		return nil, false, fmt.Errorf("could not seek within the file: %v", err)
+		return Entry{}, false, fmt.Errorf("could not seek within the file: %v", err)
 	}
 
 	var keyLen int32
 	err = binary.Read(sst.file, binary.LittleEndian, &keyLen)
 	if err != nil {
-		return nil, false, fmt.Errorf("could not read key length: %v", err)
+		return Entry{}, false, fmt.Errorf("could not read key length: %v", err)
 	}
 
 	keyBytes := make([]byte, keyLen)
 	_, err = io.ReadFull(sst.file, keyBytes)
 	if err != nil {
-		return nil, false, fmt.Errorf("could not read key bytes: %v", err)
+		return Entry{}, false, fmt.Errorf("could not read key bytes: %v", err)
 	}
 
 	var valueLen int32
 	err = binary.Read(sst.file, binary.LittleEndian, &valueLen)
 	if err != nil {
-		return nil, false, fmt.Errorf("could not read value length: %v", err)
+		return Entry{}, false, fmt.Errorf("could not read Value length: %v", err)
 	}
 
 	valueBytes := make([]byte, valueLen)
 	_, err = io.ReadFull(sst.file, valueBytes)
 	if err != nil {
-		return nil, false, fmt.Errorf("could not read value bytes: %v", err)
+		return Entry{}, false, fmt.Errorf("could not read Value bytes: %v", err)
 	}
 
-	vector, err := DeserializeVector(valueBytes)
+	entry, err := DeserializeEntry(valueBytes)
 	if err != nil {
-		return nil, false, fmt.Errorf("could not deserialize value bytes: %v", err)
+		return Entry{}, false, fmt.Errorf("could not deserialize Value bytes: %v", err)
 	}
 
-	return vector, true, nil
+	return entry, true, nil
 }
