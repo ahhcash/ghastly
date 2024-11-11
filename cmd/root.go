@@ -20,6 +20,7 @@ func Execute() {
 }
 
 func init() {
-	rootCmd.AddCommand(embedCmd)
-	rootCmd.AddCommand(searchCmd)
+	rootCmd.AddCommand(putCmd)
+	rootCmd.AddCommand(getCmd)
+
 }

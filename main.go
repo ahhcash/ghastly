@@ -1,7 +1,7 @@
 package main
 
-import "github.com/aakashshankar/vexdb/cmd"
+import rootCmd "github.com/aakashshankar/vexdb/cmd"
 
 func main() {
-	cmd.Execute()
+	rootCmd.Execute()
 }
