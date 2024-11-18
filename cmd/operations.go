@@ -10,7 +10,7 @@ var putCmd = &cobra.Command{
 	Use:   "put [key] [value]",
 	Short: "Store a key-value pair in the database",
 	Args:  cobra.ExactArgs(2),
-	RunE: func(dm *cobra.Command, args []string) error {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		config := db.DefaultConfig()
 		database, err := db.OpenDB(config)
 		if err != nil {
