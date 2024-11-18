@@ -1,6 +1,8 @@
 package storage
 
-import "math/rand"
+import (
+	"math/rand"
+)
 
 const (
 	maxLevel = 32
@@ -39,14 +41,13 @@ func (s *SkipList) randomLevel() int {
 
 func (s *SkipList) Search(key string) ([]byte, bool) {
 	current := s.head
-
 	for i := s.level; i >= 0; i-- {
 		for current.next[i] != nil && current.key < key {
 			current = current.next[i]
 		}
 	}
 
-	current = current.next[0]
+	//current = current.next[0]
 	if current != nil && current.key == key {
 		return current.value, true
 	}

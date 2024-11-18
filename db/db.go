@@ -66,7 +66,7 @@ func (db *DB) Put(key string, value string) error {
 func (db *DB) Get(key string) (string, error) {
 	entry, exists := db.store.Get(key)
 	if !exists {
-		return "", fmt.Errorf("key %s does not exist", key)
+		return "", fmt.Errorf("key %s does not exist\n", key)
 	}
 
 	return entry.Value, nil
