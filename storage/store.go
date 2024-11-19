@@ -10,9 +10,9 @@ import (
 )
 
 type Result struct {
-	key   string
-	value string
-	score float64
+	Key   string
+	Value string
+	Score float64
 }
 
 type Store struct {
@@ -82,7 +82,6 @@ func (s *Store) Get(key string) (Entry, bool) {
 
 func (s *Store) Search(query string, metric string) ([]Result, error) {
 	queryVector, err := s.model.Embed(query)
-
 	if err != nil {
 		return nil, fmt.Errorf("could not embed query vector: %v", err)
 	}
@@ -109,16 +108,32 @@ func (s *Store) Search(query string, metric string) ([]Result, error) {
 			if exists {
 				score := scoreFn(entry.Vector, queryVector)
 				results = append(results, Result{
-					key:   key,
-					value: entry.Value,
-					score: score,
+					Key:   key,
+					Value: entry.Value,
+					Score: score,
 				})
 			}
 		}
 	}
 
+	// search memtable
+	current := s.memtable.Data.head.next[0]
+	for current != nil {
+		entry, err := DeserializeEntry(current.value)
+		if err != nil {
+			fmt.Printf("could not deserialize entry: %v", err)
+		}
+		score := scoreFn(entry.Vector, queryVector)
+		results = append(results, Result{
+			Key:   current.key,
+			Value: entry.Value,
+			Score: score,
+		})
+		current = current.next[0]
+	}
+
 	sort.Slice(results, func(i, j int) bool {
-		return results[i].score > results[j].score
+		return results[i].Score > results[j].Score
 	})
 
 	return results, nil
