@@ -74,7 +74,7 @@ func (s *SkipList) Insert(key string, value []byte) {
 
 	// Start from the highest level and work down
 	for i := s.level; i >= 0; i-- {
-		// Move forward while next node's key is less than insert key
+		// Move forward while next node's Key is less than insert Key
 		for current.next[i] != nil && current.next[i].key < key {
 			current = current.next[i]
 		}
@@ -84,7 +84,7 @@ func (s *SkipList) Insert(key string, value []byte) {
 	// Move to the next node at base level
 	current = current.next[0]
 
-	// If key already exists, update the Value
+	// If Key already exists, update the Value
 	if current != nil && current.key == key {
 		current.value = value
 		return

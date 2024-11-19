@@ -35,7 +35,7 @@ func repl() error {
 		fmt.Print("vexdb> ")
 		op, err := reader.ReadString('\n')
 		if err != nil {
-			return fmt.Errorf("erro reading input: %v", err)
+			return fmt.Errorf("error reading input: %v", err)
 		}
 
 		input := strings.TrimSpace(op)
@@ -64,8 +64,9 @@ func processReplCommand(input string, db *db2.DB) error {
 	case "help":
 		fmt.Println("Available commands:")
 		fmt.Println("  put <key> <value> - Store a key-value pair")
-		fmt.Println("  get <key>        - Retrieve a value by key")
-		fmt.Println("  exit             - Exit the REPL")
+		fmt.Println("  get <key>         - Retrieve a value by key")
+		fmt.Println("  search <value>    - Semantically search for values")
+		fmt.Println("  exit              - Exit the REPL")
 		return nil
 	case "put":
 		if len(args) != 2 {
@@ -83,9 +84,22 @@ func processReplCommand(input string, db *db2.DB) error {
 		}
 		fmt.Println(value)
 		return nil
+	case "search":
+		if len(args) != 1 {
+			return fmt.Errorf("'search' takes exactly 1 argument\n")
+		}
+		res, err := db.Search(args[0])
+		if err != nil {
+			return fmt.Errorf("error during search: %v", err)
+		}
+		fmt.Println("KEY\tVALUE\tSCORE")
+		for _, r := range res {
+			fmt.Printf("%s\t%s\t%f\n", r.Key, r.Value, r.Score)
+		}
 	default:
 		return fmt.Errorf("unknown command: %s\n", cmd)
 	}
+	return nil
 }
 
 func Execute() {
@@ -95,7 +109,5 @@ func Execute() {
 }
 
 func init() {
-	rootCmd.AddCommand(putCmd)
-	rootCmd.AddCommand(getCmd)
 
 }

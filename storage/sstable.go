@@ -94,13 +94,13 @@ func (sst *SSTable) Get(key string) (Entry, bool, error) {
 	var keyLen int32
 	err = binary.Read(sst.file, binary.LittleEndian, &keyLen)
 	if err != nil {
-		return Entry{}, false, fmt.Errorf("could not read key length: %v", err)
+		return Entry{}, false, fmt.Errorf("could not read Key length: %v", err)
 	}
 
 	keyBytes := make([]byte, keyLen)
 	_, err = io.ReadFull(sst.file, keyBytes)
 	if err != nil {
-		return Entry{}, false, fmt.Errorf("could not read key bytes: %v", err)
+		return Entry{}, false, fmt.Errorf("could not read Key bytes: %v", err)
 	}
 
 	var valueLen int32
