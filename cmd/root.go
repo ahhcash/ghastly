@@ -53,7 +53,7 @@ func repl() error {
 }
 
 func processReplCommand(input string, db *db2.DB) error {
-	args := strings.Fields(input)
+	args := strings.SplitN(input, " ", 3)
 	if len(args) == 0 {
 		return nil
 	}
