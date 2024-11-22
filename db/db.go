@@ -59,6 +59,18 @@ func OpenDB(cfg Config) (*DB, error) {
 	}, nil
 }
 
+func OpenDBWithEmbedder(cfg Config, embedder embed.Embedder) (*DB, error) {
+	if err := os.MkdirAll(cfg.Path, 0755); err != nil {
+		return nil, fmt.Errorf("could not create db directory at %s: %v", cfg.Path, err)
+	}
+	store := storage.NewStore(cfg.MemtableSize, cfg.Path, embedder)
+
+	return &DB{
+		store:  store,
+		config: cfg,
+	}, nil
+}
+
 func (db *DB) Put(key string, value string) error {
 	return db.store.Put(key, value)
 }
