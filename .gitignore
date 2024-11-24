@@ -4,3 +4,4 @@ emb_samples/
 .aider*
 .env
 coverage.out
+.DS_Store
