@@ -50,6 +50,7 @@ func (s *Store) Put(key string, value string) error {
 		return fmt.Errorf("could not Put data into memtable: %v", err)
 	}
 
+	// flushed to disk
 	if s.memtable.Size() == 0 {
 		err = s.loadNewSSTable()
 		if err != nil {
