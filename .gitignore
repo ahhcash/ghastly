@@ -3,3 +3,4 @@ bin/
 emb_samples/
 .aider*
 .env
+coverage.out

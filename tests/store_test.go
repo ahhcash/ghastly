@@ -52,6 +52,7 @@ func (s *StoreTestSuite) TestMultiThreadedPut() {
 	errs := make(chan error, numRoutines)
 
 	for i := 0; i < numRoutines; i++ {
+		i := i
 		go func(id int) {
 			defer wg.Done()
 			key := fmt.Sprintf("key-%d", i)

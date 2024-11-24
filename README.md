@@ -1,5 +1,10 @@
 # VexDB - a super lightweight key-value vector DB
 
+![build](https://github.com/aakashshankar/vexdb/actions/workflows/build.yml/badge.svg)
+
+
+
+
 A Go-based vector database and search engine that supports multiple embedding providers and efficient vector similarity search.
 
 ## Features 💪
