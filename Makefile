@@ -11,7 +11,7 @@ OS := $(shell go env GOOS)
 ARCH := $(shell go env GOARCH)
 
 # Binary name with OS and ARCH
-BINARY_NAME=bin/vexdb
+BINARY_NAME=bin/ghastly
 
 # Main package path
 MAIN_PACKAGE=.

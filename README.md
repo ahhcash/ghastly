@@ -1,4 +1,4 @@
-# VexDB - a super lightweight key-value vector DB
+# GhastlyDB- a super lightweight key-value vector DB
 
 ![build](https://github.com/aakashshankar/vexdb/actions/workflows/build_and_test.yml/badge.svg)
 [![Coverage Status](https://coveralls.io/repos/github/aakashshankar/vexdb/badge.svg?branch=tests)](https://coveralls.io/github/aakashshankar/vexdb?branch=tests)
