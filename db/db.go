@@ -3,6 +3,7 @@ package db
 import (
 	"fmt"
 	"github.com/aakashshankar/vexdb/embed"
+	"github.com/aakashshankar/vexdb/embed/local/colbert"
 	"github.com/aakashshankar/vexdb/embed/nvidia"
 	"github.com/aakashshankar/vexdb/embed/openai"
 	"github.com/aakashshankar/vexdb/storage"
@@ -27,6 +28,8 @@ func initializeEmbeddingModel(model string) (embed.Embedder, error) {
 		return openai.NewOpenAIEmbedder()
 	case "nvidia":
 		return nvidia.LoadNvidiaEmbedder()
+	case "colbert":
+		return colbert.NewColBERTEmbedder()
 	default:
 		return nil, fmt.Errorf("embedding model %s not supported", model)
 	}
@@ -37,7 +40,7 @@ func DefaultConfig() Config {
 		Path:           "./vexdb_data",
 		MemtableSize:   64 * 1024 * 1024,
 		Metric:         "cosine",
-		EmbeddingModel: "openai",
+		EmbeddingModel: "colbert",
 	}
 }
 

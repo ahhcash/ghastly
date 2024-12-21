@@ -43,7 +43,9 @@ func repl() error {
 			break
 		}
 
-		err = processReplCommand(input, db)
+		if len(input) > 0 {
+			err = processReplCommand(input, db)
+		}
 		if err != nil {
 			fmt.Printf("%v", err)
 		}
@@ -94,7 +96,7 @@ func processReplCommand(input string, db *db2.DB) error {
 		}
 		fmt.Println("KEY\tVALUE\tSCORE")
 		for _, r := range res {
-			fmt.Printf("%s\t%s\t%f\n", r.Key, r.Value, r.Score)
+			fmt.Printf("%s\t%s\t%.2f\n", r.Key, r.Value, r.Score)
 		}
 	default:
 		return fmt.Errorf("unknown command: %s\n", cmd)

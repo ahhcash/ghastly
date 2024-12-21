@@ -5,3 +5,9 @@ emb_samples/
 .env
 coverage.out
 .DS_Store
+
+!libs/static/libtokenizers/
+libs/static/libtokenizers/*
+!libs/static/libtokenizers/.gitkeep
+
+/models/
