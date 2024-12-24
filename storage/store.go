@@ -2,8 +2,8 @@ package storage
 
 import (
 	"fmt"
-	"github.com/aakashshankar/vexdb/embed"
-	"github.com/aakashshankar/vexdb/search"
+	"github.com/ahhcash/ghastlydb/embed"
+	"github.com/ahhcash/ghastlydb/search"
 	"path/filepath"
 	"sort"
 	"sync"

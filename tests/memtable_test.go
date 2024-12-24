@@ -1,7 +1,7 @@
 package tests
 
 import (
-	"github.com/aakashshankar/vexdb/storage"
+	"github.com/ahhcash/ghastlydb/storage"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"os"

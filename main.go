@@ -1,6 +1,6 @@
 package main
 
-import rootCmd "github.com/aakashshankar/vexdb/cmd"
+import rootCmd "github.com/ahhcash/ghastlydb/cmd"
 
 func main() {
 	rootCmd.Execute()

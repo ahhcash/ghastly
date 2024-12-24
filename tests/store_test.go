@@ -2,8 +2,8 @@ package tests
 
 import (
 	"fmt"
-	"github.com/aakashshankar/vexdb/storage"
-	"github.com/aakashshankar/vexdb/tests/mocks"
+	"github.com/ahhcash/ghastlydb/storage"
+	"github.com/ahhcash/ghastlydb/tests/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"

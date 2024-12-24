@@ -40,8 +40,8 @@ The system consists of several key components:
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/vexdb.git
-cd vexdb
+git clone https://github.com/ahhcash/ghastly.git 
+cd ghastly
 ```
 
 2. Build the binary:
@@ -84,7 +84,7 @@ make fmt
 
 ## Usage 🧑‍💻
 
-`/path/to/repo/bin/vexdb <your command> [flags] <your input>`
+`/path/to/repo/bin/ghastly <your command> [flags] <your input>`
 
 Add `/path/to/repo/bin` your `$PATH` for convenience
 
