@@ -1,8 +1,8 @@
 package tests
 
 import (
-	"github.com/aakashshankar/vexdb/db"
-	"github.com/aakashshankar/vexdb/tests/mocks"
+	"github.com/ahhcash/ghastlydb/db"
+	"github.com/ahhcash/ghastlydb/tests/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -37,8 +37,8 @@ func (s *DBTestSuite) TearDownTest() {
 func (s *DBTestSuite) TestDefaultConfig() {
 	cfg := db.DefaultConfig()
 
-	assert.Equal(s.T(), "./vexdb_data", cfg.Path)
-	assert.Equal(s.T(), "openai", cfg.EmbeddingModel)
+	assert.Equal(s.T(), "./ghastlydb_data", cfg.Path)
+	assert.Equal(s.T(), "colbert", cfg.EmbeddingModel)
 	assert.Equal(s.T(), 64*1024*1024, cfg.MemtableSize)
 	assert.Equal(s.T(), "cosine", cfg.Metric)
 }

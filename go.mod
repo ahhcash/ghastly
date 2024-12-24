@@ -1,4 +1,4 @@
-module github.com/aakashshankar/vexdb
+module github.com/ahhcash/ghastlydb
 
 go 1.23.3
 

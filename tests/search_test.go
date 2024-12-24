@@ -1,7 +1,7 @@
 package tests
 
 import (
-	"github.com/aakashshankar/vexdb/search"
+	"github.com/ahhcash/ghastlydb/search"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"math"

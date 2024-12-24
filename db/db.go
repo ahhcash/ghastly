@@ -2,11 +2,11 @@ package db
 
 import (
 	"fmt"
-	"github.com/aakashshankar/vexdb/embed"
-	"github.com/aakashshankar/vexdb/embed/local/colbert"
-	"github.com/aakashshankar/vexdb/embed/nvidia"
-	"github.com/aakashshankar/vexdb/embed/openai"
-	"github.com/aakashshankar/vexdb/storage"
+	"github.com/ahhcash/ghastlydb/embed"
+	"github.com/ahhcash/ghastlydb/embed/local/colbert"
+	"github.com/ahhcash/ghastlydb/embed/nvidia"
+	"github.com/ahhcash/ghastlydb/embed/openai"
+	"github.com/ahhcash/ghastlydb/storage"
 	"os"
 )
 
@@ -37,7 +37,7 @@ func initializeEmbeddingModel(model string) (embed.Embedder, error) {
 
 func DefaultConfig() Config {
 	return Config{
-		Path:           "./vexdb_data",
+		Path:           "./ghastlydb_data",
 		MemtableSize:   64 * 1024 * 1024,
 		Metric:         "cosine",
 		EmbeddingModel: "colbert",

@@ -3,7 +3,7 @@ package cmd
 import (
 	"bufio"
 	"fmt"
-	db2 "github.com/aakashshankar/vexdb/db"
+	db2 "github.com/ahhcash/ghastlydb/db"
 	"github.com/spf13/cobra"
 	"os"
 	"strings"
