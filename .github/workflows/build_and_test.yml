@@ -35,40 +35,29 @@ jobs:
         run: |
           python -c "import onnxruntime; print(f'ONNX Runtime Version: {onnxruntime.__version__}')"
 
-      - name: Install Rust
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          override: true
-          components: rustfmt, clippy
+      - name: Install Rust toolchain
+        uses: actions-rust-lang/setup-rust-toolchain@v1
 
-      - name: Cache Rust dependencies
-        uses: actions/cache@v3
+      - name: release-downloader
+        uses: robinraju/release-downloader@v1.11
         with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            libs/static/libtokenizers/target
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-
-      - name: Build libtokenizers
-        run: |
-          cd libs/static/libtokenizers
-          cargo build --release
-          cd ../../..
+          repository: 'daulet/tokenizers'
+          zipBall: 'false'
+          fileName: 'libtokenizers.linux-x86_64.tar.gz'
+          out-file-path: './libs/static/libtokenizers'
+          extract: 'true'
 
       - name: Build
         run: make
         env:
           CGO_ENABLED: 1
-          LD_LIBRARY_PATH: /usr/local/lib:$LD_LIBRARY_PATH
+          CGO_LDFLAGS: -L./libs/static/libtokenizers
 
-      # Run tests with coverage
       - name: Test Coverage
         run: make coverage
         env:
           CGO_ENABLED: 1
-          LD_LIBRARY_PATH: /usr/local/lib:$LD_LIBRARY_PATH
+          CGO_LDFLAGS: -L./libs/static/libtokenizers
 
       - name: Install Goveralls
         run: go install github.com/mattn/goveralls@latest
