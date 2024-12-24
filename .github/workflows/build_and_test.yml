@@ -41,6 +41,7 @@ jobs:
       - name: release-downloader
         uses: robinraju/release-downloader@v1.11
         with:
+          latest: 'true'
           repository: 'daulet/tokenizers'
           zipBall: 'false'
           fileName: 'libtokenizers.linux-x86_64.tar.gz'
