@@ -13,7 +13,8 @@ type ColBERTEmbedder struct {
 }
 
 func NewColBERTEmbedder() (*ColBERTEmbedder, error) {
-	onnxPath := getPlatformOnnxPath()
+	osConfig := getConfig()
+	onnxPath := osConfig.OnnxPath()
 	session, err := hugot.NewORTSession(
 		options.WithOnnxLibraryPath(onnxPath))
 	if err != nil {

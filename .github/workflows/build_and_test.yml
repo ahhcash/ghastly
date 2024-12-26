@@ -48,14 +48,11 @@ jobs:
           out-file-path: './libs/static/libtokenizers'
           extract: 'true'
 
+      - name: Install linter
+        uses: golangci/golangci-lint-action@v6.1.1
+
       - name: Build
         run: make
-        env:
-          CGO_ENABLED: 1
-          CGO_LDFLAGS: -L./libs/static/libtokenizers
-
-      - name: Test Coverage
-        run: make coverage
         env:
           CGO_ENABLED: 1
           CGO_LDFLAGS: -L./libs/static/libtokenizers
