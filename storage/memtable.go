@@ -117,7 +117,7 @@ func (m *Memtable) flushToDisk(destPath string) error {
 	defer func(file *os.File) {
 		err := file.Close()
 		if err != nil {
-
+			return
 		}
 	}(file)
 	current := m.Data.head.next[0]

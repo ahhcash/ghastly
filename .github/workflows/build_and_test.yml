@@ -54,12 +54,6 @@ jobs:
           CGO_ENABLED: 1
           CGO_LDFLAGS: -L./libs/static/libtokenizers
 
-      - name: Test Coverage
-        run: make coverage
-        env:
-          CGO_ENABLED: 1
-          CGO_LDFLAGS: -L./libs/static/libtokenizers
-
       - name: Install Goveralls
         run: go install github.com/mattn/goveralls@latest
 

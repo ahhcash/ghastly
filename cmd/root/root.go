@@ -1,18 +1,20 @@
-package cmd
+package root
 
 import (
 	"bufio"
 	"fmt"
 	db2 "github.com/ahhcash/ghastlydb/db"
+	"github.com/ahhcash/ghastlydb/storage"
 	"github.com/spf13/cobra"
 	"os"
 	"strings"
+	"unicode/utf8"
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "vexdb",
-	Short: "VexDB REPL CLI tool",
-	Long:  `A CLI tool for VexDB operations`,
+	Use:   "ghastly",
+	Short: "GhastlyDB REPL CLI tool",
+	Long:  `A CLI tool for GhastlyDB operations`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) == 0 {
 			err := repl()
@@ -30,9 +32,9 @@ func repl() error {
 	if err != nil {
 		return fmt.Errorf("error initializing database: %v", err)
 	}
-	fmt.Println("VexDB REPL. 'help' gives you command list")
+	fmt.Println("GhastlyDB REPL. 'help' gives you command list")
 	for {
-		fmt.Print("vexdb> ")
+		fmt.Print("ghastly> ")
 		op, err := reader.ReadString('\n')
 		if err != nil {
 			return fmt.Errorf("error reading input: %v", err)
@@ -52,6 +54,53 @@ func repl() error {
 	}
 
 	return nil
+}
+
+func formatSearchResults(results []storage.Result) string {
+	if len(results) == 0 {
+		return "No results found"
+	}
+
+	headers := []string{"KEY", "VALUE", "SCORE"}
+
+	maxKeyLen := len(headers[0])
+	maxValueLen := len(headers[1])
+	maxScoreLen := len(headers[2])
+
+	for _, r := range results {
+		keyLen := utf8.RuneCountInString(r.Key)
+		valueLen := utf8.RuneCountInString(r.Value)
+		scoreLen := len(fmt.Sprintf("%.4f", r.Score))
+
+		if keyLen > maxKeyLen {
+			maxKeyLen = keyLen
+		}
+		if valueLen > maxValueLen {
+			maxValueLen = valueLen
+		}
+		if scoreLen > maxScoreLen {
+			maxScoreLen = scoreLen
+		}
+	}
+
+	const padding = 3
+	maxKeyLen += padding
+	maxValueLen += padding
+
+	formatStr := fmt.Sprintf("%%-%ds%%-%ds%%%ds\n", maxKeyLen, maxValueLen, maxScoreLen)
+
+	var sb strings.Builder
+
+	sb.WriteString(fmt.Sprintf(formatStr, headers[0], headers[1], headers[2]))
+
+	separatorLen := maxKeyLen + maxValueLen + maxScoreLen
+	sb.WriteString(strings.Repeat("-", separatorLen) + "\n")
+
+	for _, r := range results {
+		sb.WriteString(fmt.Sprintf(formatStr, r.Key, r.Value, fmt.Sprintf("%.4f", r.Score)))
+	}
+
+	return sb.String()
 }
 
 func processReplCommand(input string, db *db2.DB) error {
@@ -94,10 +143,7 @@ func processReplCommand(input string, db *db2.DB) error {
 		if err != nil {
 			return fmt.Errorf("error during search: %v", err)
 		}
-		fmt.Println("KEY\tVALUE\tSCORE")
-		for _, r := range res {
-			fmt.Printf("%s\t%s\t%.2f\n", r.Key, r.Value, r.Score)
-		}
+		fmt.Print(formatSearchResults(res))
 	default:
 		return fmt.Errorf("unknown command: %s\n", cmd)
 	}
