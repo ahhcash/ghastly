@@ -48,6 +48,9 @@ jobs:
           out-file-path: './libs/static/libtokenizers'
           extract: 'true'
 
+      - name: Install linter
+        uses: golangci/golangci-lint-action@v6.1.1
+
       - name: Build
         run: make
         env:
