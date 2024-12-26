@@ -10,8 +10,10 @@ import (
 )
 
 type Entry struct {
-	Value  string
-	Vector []float64
+	Value     string
+	Vector    []float64
+	Deleted   bool
+	Timestamp int64
 }
 
 type Memtable struct {

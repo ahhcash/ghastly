@@ -78,6 +78,10 @@ func (db *DB) Put(key string, value string) error {
 	return db.store.Put(key, value)
 }
 
+func (db *DB) Delete(key string) error {
+	return db.store.Delete(key)
+}
+
 func (db *DB) Get(key string) (string, error) {
 	entry, exists := db.store.Get(key)
 	if !exists {

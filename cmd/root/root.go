@@ -11,24 +11,42 @@ import (
 	"unicode/utf8"
 )
 
-var rootCmd = &cobra.Command{
-	Use:   "ghastly",
-	Short: "GhastlyDB REPL CLI tool",
-	Long:  `A CLI tool for GhastlyDB operations`,
-	RunE: func(cmd *cobra.Command, args []string) error {
-		if len(args) == 0 {
-			err := repl()
-			if err != nil {
-				return err
+var (
+	rootCmd = &cobra.Command{
+		Use:   "ghastly",
+		Short: "GhastlyDB REPL CLI tool",
+		Long:  `A CLI tool for GhastlyDB operations`,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if len(args) == 0 {
+				err := repl(db2.DefaultConfig())
+				if err != nil {
+					return err
+				}
+			} else {
+				cfg := &db2.Config{
+					Path:           path,
+					MemtableSize:   memTSize,
+					EmbeddingModel: model,
+					Metric:         metric,
+				}
+				err := repl(*cfg)
+				if err != nil {
+					return err
+				}
 			}
-		}
-		return nil
-	},
-}
+			return nil
+		},
+	}
 
-func repl() error {
+	path     string
+	memTSize int
+	model    string
+	metric   string
+)
+
+func repl(config db2.Config) error {
 	reader := bufio.NewReader(os.Stdin)
-	db, err := db2.OpenDB(db2.DefaultConfig())
+	db, err := db2.OpenDB(config)
 	if err != nil {
 		return fmt.Errorf("error initializing database: %v", err)
 	}
@@ -109,17 +127,17 @@ func processReplCommand(input string, db *db2.DB) error {
 		return nil
 	}
 	cmd := args[0]
-
+	cmd = strings.ToLower(cmd)
 	args = args[1:]
 	switch cmd {
 	case "help":
 		fmt.Println("Available commands:")
-		fmt.Println("  put <key> <value> - Store a key-value pair")
-		fmt.Println("  get <key>         - Retrieve a value by key")
-		fmt.Println("  search <value>    - Semantically search for values")
+		fmt.Println("  SET <key> <value> - Store a key-value pair")
+		fmt.Println("  GET <key>         - Retrieve a value by key")
+		fmt.Println("  VSEARCH <value>    - Semantically search for values")
 		fmt.Println("  exit              - Exit the REPL")
 		return nil
-	case "put":
+	case "set":
 		if len(args) != 2 {
 			return fmt.Errorf("'put' requires exactly 2 arguments: key and value\n")
 		}
@@ -135,7 +153,7 @@ func processReplCommand(input string, db *db2.DB) error {
 		}
 		fmt.Println(value)
 		return nil
-	case "search":
+	case "vsearch":
 		if len(args) != 1 {
 			return fmt.Errorf("'search' takes exactly 1 argument\n")
 		}
@@ -157,5 +175,8 @@ func Execute() {
 }
 
 func init() {
-
+	rootCmd.Flags().StringVarP(&path, "path", "p", "./ghasltydb_data", "database location")
+	rootCmd.Flags().StringVarP(&model, "model", "m", "colbert", "the embedding model to use")
+	rootCmd.Flags().IntVarP(&memTSize, "size", "s", 64*1024*1024, "size of the in memory memtable")
+	rootCmd.Flags().StringVarP(&metric, "metric", "x", "cosine", "the similarity metric to use")
 }

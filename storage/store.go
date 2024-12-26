@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"sort"
 	"sync"
+	"time"
 )
 
 type Result struct {
@@ -60,12 +61,38 @@ func (s *Store) Put(key string, value string) error {
 	return nil
 }
 
+func (s *Store) Delete(key string) error {
+	_, exists := s.Get(key)
+
+	if !exists {
+		return fmt.Errorf("key %s does not exist", key)
+	}
+
+	s.lock.Lock()
+	defer s.lock.Unlock()
+
+	tombstone := &Entry{
+		Deleted:   true,
+		Timestamp: time.Now().UnixMilli(),
+	}
+
+	err := s.memtable.Put(key, *tombstone, s.destDir)
+	if err != nil {
+		return fmt.Errorf("could not delete key %s: %v", key, err)
+	}
+
+	return nil
+}
+
 func (s *Store) Get(key string) (Entry, bool) {
 	s.lock.RLock()
 	defer s.lock.RUnlock()
 
 	entry, exists := s.memtable.Get(key)
 	if exists {
+		if entry.Deleted {
+			return Entry{}, false
+		}
 		return entry, true
 	}
 

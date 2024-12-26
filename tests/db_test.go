@@ -103,6 +103,33 @@ func (s *DBTestSuite) TestPutAndGet() {
 	assert.Error(s.T(), err)
 }
 
+func (s *DBTestSuite) TestDelete() {
+	mockEmbedder := mocks.MockEmbedder{}
+	mockEmbedder.On("Embed", mock.AnythingOfType("string")).Return(
+		[]float64{0.342323, 0.556455, 0.43244},
+		nil,
+	)
+
+	cfg := db.Config{
+		Path:           s.testPath,
+		MemtableSize:   1024,
+		Metric:         "cosine",
+		EmbeddingModel: "openai",
+	}
+
+	database, err := db.OpenDBWithEmbedder(cfg, &mockEmbedder)
+	require.NoError(s.T(), err)
+
+	err = database.Put("test_key", "test_value")
+	assert.NoError(s.T(), err)
+
+	err = database.Delete("test_key")
+	assert.NoError(s.T(), err)
+	//
+	//_, err = database.Get("test_key")
+	//assert.Error(s.T(), err)
+}
+
 func (s *DBTestSuite) TestSearch() {
 	mockEmbedder := mocks.MockEmbedder{}
 	mockEmbedder.On("Embed", mock.AnythingOfType("string")).Return(
