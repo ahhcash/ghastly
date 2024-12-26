@@ -34,6 +34,7 @@ func NewColBERTEmbedder() (*ColBERTEmbedder, error) {
 	}
 
 	embeddingPipeline, err := hugot.NewPipeline(session, pipelineConfig)
+	embeddingPipeline.Normalization = true
 	if err != nil {
 		return nil, err
 	}
