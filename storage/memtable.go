@@ -133,7 +133,7 @@ func DeserializeEntry(data []byte) (Entry, error) {
 	}
 
 	vectorLen := binary.LittleEndian.Uint32(data[offset:])
-	offset += int(vectorLen)
+	offset += 4
 
 	requiredBytes := offset + int(vectorLen)*8
 	if requiredBytes > len(data) {

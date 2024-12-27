@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 )
 
 type MemtableTestSuite struct {
@@ -32,8 +33,10 @@ func (s *MemtableTestSuite) TestNewMemtable() {
 
 func (s *MemtableTestSuite) TestPutAndGet() {
 	entry := storage.Entry{
-		Value:  "test value",
-		Vector: []float64{1.0, 2.0, 3.0},
+		Value:     "test value",
+		Vector:    []float64{1.0, 2.0, 3.0},
+		Deleted:   false,
+		Timestamp: time.Now().UnixMilli(),
 	}
 
 	// Test Put
@@ -54,12 +57,16 @@ func (s *MemtableTestSuite) TestPutAndGet() {
 
 func (s *MemtableTestSuite) TestUpdateExisting() {
 	entry1 := storage.Entry{
-		Value:  "initial value",
-		Vector: []float64{1.0, 2.0},
+		Value:     "initial value",
+		Vector:    []float64{1.0, 2.0},
+		Timestamp: time.Now().UnixMilli(),
+		Deleted:   false,
 	}
 	entry2 := storage.Entry{
-		Value:  "updated value",
-		Vector: []float64{3.0, 4.0},
+		Value:     "updated value",
+		Vector:    []float64{3.0, 4.0},
+		Timestamp: time.Now().UnixMilli(),
+		Deleted:   false,
 	}
 
 	// Insert initial entry
@@ -85,8 +92,10 @@ func (s *MemtableTestSuite) TestFlushToDisk() {
 	// Add entries until flush
 	for i := 0; i < 100; i++ {
 		entry := storage.Entry{
-			Value:  "test value",
-			Vector: []float64{1.0, 2.0},
+			Value:     "test value",
+			Vector:    []float64{1.0, 2.0},
+			Timestamp: time.Now().UnixMilli(),
+			Deleted:   false,
 		}
 		err := smallMemtable.Put("key"+string(rune(i)), entry, s.testPath)
 		assert.NoError(s.T(), err)
@@ -124,8 +133,9 @@ func (s *MemtableTestSuite) TestClear() {
 
 func (s *MemtableTestSuite) TestSerializeDeserialize() {
 	original := storage.Entry{
-		Value:  "test value",
-		Vector: []float64{1.0, 2.0, 3.0},
+		Value:   "test value",
+		Vector:  []float64{1.0, 2.0, 3.0},
+		Deleted: false,
 	}
 
 	// Serialize
