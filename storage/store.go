@@ -43,8 +43,10 @@ func (s *Store) Put(key string, value string) error {
 	}
 
 	entry := Entry{
-		Value:  value,
-		Vector: vector,
+		Value:     value,
+		Vector:    vector,
+		Deleted:   false,
+		Timestamp: time.Now().UnixMilli(),
 	}
 	err = s.memtable.Put(key, entry, s.destDir)
 	if err != nil {
@@ -71,12 +73,12 @@ func (s *Store) Delete(key string) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
-	tombstone := &Entry{
+	tombstone := Entry{
 		Deleted:   true,
 		Timestamp: time.Now().UnixMilli(),
 	}
 
-	err := s.memtable.Put(key, *tombstone, s.destDir)
+	err := s.memtable.Put(key, tombstone, s.destDir)
 	if err != nil {
 		return fmt.Errorf("could not delete key %s: %v", key, err)
 	}

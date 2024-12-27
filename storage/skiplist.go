@@ -32,7 +32,6 @@ func NewSkipList() *SkipList {
 
 func (s *SkipList) randomLevel() int {
 	level := 0
-	// Keep going while random number < p and we haven't reached maxLevel
 	for rand.Float64() < p && level < maxLevel-1 {
 		level++
 	}
@@ -47,7 +46,6 @@ func (s *SkipList) Search(key string) ([]byte, bool) {
 		}
 	}
 
-	//current = current.next[0]
 	if current != nil && current.key == key {
 		return current.value, true
 	}
@@ -72,29 +70,22 @@ func (s *SkipList) Insert(key string, value []byte) {
 	update := make([]*SkipNode, maxLevel)
 	current := s.head
 
-	// Start from the highest level and work down
 	for i := s.level; i >= 0; i-- {
-		// Move forward while next node's Key is less than insert Key
 		for current.next[i] != nil && current.next[i].key < key {
 			current = current.next[i]
 		}
 		update[i] = current
 	}
 
-	// Move to the next node at base level
 	current = current.next[0]
 
-	// If Key already exists, update the Value
 	if current != nil && current.key == key {
 		current.value = value
 		return
 	}
 
-	// Generate a random level for the new node
 	newLevel := s.randomLevel()
 
-	// If the new level is higher than the current list level,
-	// update the update array with the head node for those levels
 	if newLevel > s.level {
 		for i := s.level + 1; i <= newLevel; i++ {
 			update[i] = s.head
@@ -102,14 +93,12 @@ func (s *SkipList) Insert(key string, value []byte) {
 		s.level = newLevel
 	}
 
-	// Create new node
 	newNode := &SkipNode{
 		key:   key,
 		value: value,
 		next:  make([]*SkipNode, newLevel+1),
 	}
 
-	// Insert the node at all levels
 	for i := 0; i <= newLevel; i++ {
 		newNode.next[i] = update[i].next[i]
 		update[i].next[i] = newNode

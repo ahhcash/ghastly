@@ -59,14 +59,33 @@ func (m *Memtable) Put(key string, entry Entry, destPath string) error {
 
 func SerializeEntry(entry Entry) ([]byte, error) {
 	valueLen := int32(len(entry.Value))
-	buf := make([]byte, 4+valueLen+8*int32(len(entry.Vector)))
+	vectorLen := int32(len(entry.Vector))
+	totalBufSize := 1 + 8 + 4 + valueLen + 4 + 8*vectorLen
+	buf := make([]byte, totalBufSize)
+	offset := 0
 
-	binary.LittleEndian.PutUint32(buf[0:], uint32(valueLen))
-	copy(buf[4:], entry.Value)
+	// write deleted fisrt
+	if entry.Deleted {
+		buf[offset] = 1
+	} else {
+		buf[offset] = 0
+	}
+	offset += 1
 
-	offset := 4 + valueLen
+	binary.LittleEndian.PutUint64(buf[offset:], uint64(entry.Timestamp))
+	offset += 8
+
+	binary.LittleEndian.PutUint32(buf[offset:], uint32(valueLen))
+	offset += 4
+
+	copy(buf[offset:], entry.Value)
+	offset += int(valueLen)
+
+	binary.LittleEndian.PutUint32(buf[offset:], uint32(vectorLen))
+	offset += 4
+
 	for i, v := range entry.Vector {
-		binary.LittleEndian.PutUint64(buf[offset+int32(i*8):], math.Float64bits(v))
+		binary.LittleEndian.PutUint64(buf[offset+i*8:], math.Float64bits(v))
 	}
 
 	return buf, nil
@@ -87,16 +106,52 @@ func (m *Memtable) Get(key string) (Entry, bool) {
 }
 
 func DeserializeEntry(data []byte) (Entry, error) {
-	valueLen := binary.LittleEndian.Uint32(data[0:4])
-	value := string(data[4 : 4+valueLen])
-	vectorData := data[4+valueLen:]
-	vector := make([]float64, len(vectorData)/8)
-	for i := range vector {
-		bits := binary.LittleEndian.Uint64(vectorData[i*8:])
-		vector[i] = math.Float64frombits(bits)
+	// 1 + 8 + 4 + 4
+	if len(data) < 17 {
+		return Entry{}, fmt.Errorf("data insufficent to deserialize, got %d bytes", len(data))
 	}
 
-	return Entry{Value: value, Vector: vector}, nil
+	var offset = 0
+	deleted := data[offset] == 1
+	offset += 1
+
+	timestamp := int64(binary.LittleEndian.Uint64(data[offset:]))
+	offset += 8
+
+	valueLen := binary.LittleEndian.Uint32(data[offset:])
+	offset += 4
+
+	if offset+int(valueLen) > len(data) {
+		return Entry{}, fmt.Errorf("invalid value length, reading past end of data")
+	}
+
+	value := data[offset : offset+int(valueLen)]
+	offset += int(valueLen)
+
+	if offset+4 > len(data) {
+		return Entry{}, fmt.Errorf("invalid vector length: no space for vector")
+	}
+
+	vectorLen := binary.LittleEndian.Uint32(data[offset:])
+	offset += 4
+
+	requiredBytes := offset + int(vectorLen)*8
+	if requiredBytes > len(data) {
+		return Entry{}, fmt.Errorf("invalid vector length: reading past end of data")
+	}
+	vector := make([]float64, vectorLen)
+	for i := range vector {
+		bits := binary.LittleEndian.Uint64(data[offset:])
+		vector[i] = math.Float64frombits(bits)
+		offset += 8
+	}
+
+	return Entry{
+		Value:     string(value),
+		Vector:    vector,
+		Deleted:   deleted,
+		Timestamp: timestamp,
+	}, nil
 }
 
 func (m *Memtable) Size() int {

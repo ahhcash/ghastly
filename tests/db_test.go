@@ -125,9 +125,9 @@ func (s *DBTestSuite) TestDelete() {
 
 	err = database.Delete("test_key")
 	assert.NoError(s.T(), err)
-	//
-	//_, err = database.Get("test_key")
-	//assert.Error(s.T(), err)
+
+	_, err = database.Get("test_key")
+	assert.Error(s.T(), err)
 }
 
 func (s *DBTestSuite) TestSearch() {
