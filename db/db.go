@@ -10,7 +10,7 @@ import (
 	"os"
 )
 
-type Config struct {
+type DBConfig struct {
 	Path           string
 	MemtableSize   int
 	Metric         string
@@ -18,8 +18,8 @@ type Config struct {
 }
 
 type DB struct {
-	store  *storage.Store
-	config Config
+	store    *storage.Store
+	dbConfig DBConfig
 }
 
 func initializeEmbeddingModel(model string) (embed.Embedder, error) {
@@ -35,16 +35,16 @@ func initializeEmbeddingModel(model string) (embed.Embedder, error) {
 	}
 }
 
-func DefaultConfig() Config {
-	return Config{
+func DefaultConfig() DBConfig {
+	return DBConfig{
 		Path:           "./ghastlydb_data",
 		MemtableSize:   64 * 1024 * 1024,
 		Metric:         "cosine",
-		EmbeddingModel: "colbert",
+		EmbeddingModel: "openai",
 	}
 }
 
-func OpenDB(cfg Config) (*DB, error) {
+func OpenDB(cfg DBConfig) (*DB, error) {
 	if err := os.MkdirAll(cfg.Path, 0755); err != nil {
 		return nil, fmt.Errorf("could not create db directory at %s: %v", cfg.Path, err)
 	}
@@ -57,20 +57,20 @@ func OpenDB(cfg Config) (*DB, error) {
 	store := storage.NewStore(cfg.MemtableSize, cfg.Path, model)
 
 	return &DB{
-		store:  store,
-		config: cfg,
+		store:    store,
+		dbConfig: cfg,
 	}, nil
 }
 
-func OpenDBWithEmbedder(cfg Config, embedder embed.Embedder) (*DB, error) {
+func OpenDBWithEmbedder(cfg DBConfig, embedder embed.Embedder) (*DB, error) {
 	if err := os.MkdirAll(cfg.Path, 0755); err != nil {
 		return nil, fmt.Errorf("could not create db directory at %s: %v", cfg.Path, err)
 	}
 	store := storage.NewStore(cfg.MemtableSize, cfg.Path, embedder)
 
 	return &DB{
-		store:  store,
-		config: cfg,
+		store:    store,
+		dbConfig: cfg,
 	}, nil
 }
 
@@ -91,6 +91,11 @@ func (db *DB) Get(key string) (string, error) {
 	return entry.Value, nil
 }
 
+func (db *DB) Exists(key string) bool {
+	_, exists := db.store.Get(key)
+	return exists
+}
+
 func (db *DB) Search(query string) ([]storage.Result, error) {
-	return db.store.Search(query, db.config.Metric)
+	return db.store.Search(query, db.dbConfig.Metric)
 }

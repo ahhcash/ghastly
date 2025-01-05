@@ -38,13 +38,13 @@ func (s *DBTestSuite) TestDefaultConfig() {
 	cfg := db.DefaultConfig()
 
 	assert.Equal(s.T(), "./ghastlydb_data", cfg.Path)
-	assert.Equal(s.T(), "colbert", cfg.EmbeddingModel)
+	assert.Equal(s.T(), "openai", cfg.EmbeddingModel)
 	assert.Equal(s.T(), 64*1024*1024, cfg.MemtableSize)
 	assert.Equal(s.T(), "cosine", cfg.Metric)
 }
 
 func (s *DBTestSuite) TestOpenDB() {
-	cfg := db.Config{
+	cfg := db.DBConfig{
 		Metric:         "dot",
 		EmbeddingModel: "nvidia",
 		MemtableSize:   1024,
@@ -63,7 +63,7 @@ func (s *DBTestSuite) TestOpenDBWithEmbedder() {
 		nil,
 	)
 
-	cfg := db.Config{
+	cfg := db.DBConfig{
 		Metric:         "dot",
 		EmbeddingModel: "nvidia",
 		MemtableSize:   1024,
@@ -82,7 +82,7 @@ func (s *DBTestSuite) TestPutAndGet() {
 		nil,
 	)
 
-	cfg := db.Config{
+	cfg := db.DBConfig{
 		Path:           s.testPath,
 		MemtableSize:   1024,
 		Metric:         "cosine",
@@ -110,7 +110,7 @@ func (s *DBTestSuite) TestDelete() {
 		nil,
 	)
 
-	cfg := db.Config{
+	cfg := db.DBConfig{
 		Path:           s.testPath,
 		MemtableSize:   1024,
 		Metric:         "cosine",
@@ -137,7 +137,7 @@ func (s *DBTestSuite) TestSearch() {
 		nil,
 	)
 
-	cfg := db.Config{
+	cfg := db.DBConfig{
 		Path:           s.testPath,
 		MemtableSize:   1024,
 		Metric:         "cosine",

@@ -35,9 +35,6 @@ jobs:
         run: |
           python -c "import onnxruntime; print(f'ONNX Runtime Version: {onnxruntime.__version__}')"
 
-      - name: Install Rust toolchain
-        uses: actions-rust-lang/setup-rust-toolchain@v1
-
       - name: release-downloader
         uses: robinraju/release-downloader@v1.11
         with:
