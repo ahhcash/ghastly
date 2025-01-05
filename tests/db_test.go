@@ -44,7 +44,7 @@ func (s *DBTestSuite) TestDefaultConfig() {
 }
 
 func (s *DBTestSuite) TestOpenDB() {
-	cfg := db.Config{
+	cfg := db.DBConfig{
 		Metric:         "dot",
 		EmbeddingModel: "nvidia",
 		MemtableSize:   1024,
@@ -63,7 +63,7 @@ func (s *DBTestSuite) TestOpenDBWithEmbedder() {
 		nil,
 	)
 
-	cfg := db.Config{
+	cfg := db.DBConfig{
 		Metric:         "dot",
 		EmbeddingModel: "nvidia",
 		MemtableSize:   1024,
@@ -82,7 +82,7 @@ func (s *DBTestSuite) TestPutAndGet() {
 		nil,
 	)
 
-	cfg := db.Config{
+	cfg := db.DBConfig{
 		Path:           s.testPath,
 		MemtableSize:   1024,
 		Metric:         "cosine",
@@ -110,7 +110,7 @@ func (s *DBTestSuite) TestDelete() {
 		nil,
 	)
 
-	cfg := db.Config{
+	cfg := db.DBConfig{
 		Path:           s.testPath,
 		MemtableSize:   1024,
 		Metric:         "cosine",
@@ -137,7 +137,7 @@ func (s *DBTestSuite) TestSearch() {
 		nil,
 	)
 
-	cfg := db.Config{
+	cfg := db.DBConfig{
 		Path:           s.testPath,
 		MemtableSize:   1024,
 		Metric:         "cosine",

@@ -17,7 +17,11 @@ BUILD_FLAGS=-v
 # Test flags
 TEST_FLAGS=-v
 
-.PHONY: all build clean test coverage deps vet fmt lint run help
+
+PROTO_DIR=grpc/proto
+PROTO_OUT=grpc/gen
+
+.PHONY: all build clean test coverage deps vet fmt lint run help proto
 
 all: deps vet fmt lint coverage build
 
@@ -58,6 +62,15 @@ build-all:
 	GOOS=darwin GOARCH=arm64 $(GOBUILD) $(BUILD_FLAGS) -o ghastly-darwin-arm64 $(MAIN_PACKAGE)
 	GOOS=windows GOARCH=amd64 $(GOBUILD) $(BUILD_FLAGS) -o ghastly-windows-amd64.exe $(MAIN_PACKAGE)
 
+
+proto:
+	mkdir -p $(PROTO_OUT)
+
+	protoc --go_out=$(PROTO_OUT) --go_opt=paths=source_relative \
+		   --go-grpc_out=$(PROTO_OUT) --go-grpc_opt=paths=source_relative \
+		   $(PROTO_DIR)/*.proto
+
+
 help:
 	@echo "Available targets:"
 	@echo "  build     : Build the binary for the current OS and architecture"
@@ -68,6 +81,7 @@ help:
 	@echo "  vet       : Run go vet"
 	@echo "  fmt       : Run go fmt"
 	@echo "  lint      : Run golangci-lint"
+	@echo "  proto     : Generate protobuf stubs"
 	@echo "  run       : Build and run the binary"
 	@echo "  build-all : Build binaries for multiple OS and architectures"
 	@echo "  help      : Show this help message"

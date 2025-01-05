@@ -7,9 +7,10 @@ toolchain go1.23.4
 require (
 	github.com/google/uuid v1.6.0
 	github.com/knights-analytics/hugot v0.2.2
-	github.com/spf13/cobra v1.8.1
 	github.com/stretchr/testify v1.10.0
 	github.com/valyala/fasthttp v1.55.0
+	google.golang.org/grpc v1.69.2
+	google.golang.org/protobuf v1.36.1
 )
 
 require (
@@ -44,7 +45,6 @@ require (
 	github.com/gomlx/gomlx v0.15.4-0.20241201091902-08b09d3d86d8 // indirect
 	github.com/gomlx/gopjrt v0.4.10-0.20241203095034-c8c81d9f11fe // indirect
 	github.com/gomlx/onnx-gomlx v0.1.4 // indirect
-	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/compress v1.17.9 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
@@ -53,7 +53,6 @@ require (
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
-	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/stretchr/objx v0.5.2 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/viant/afs v1.25.1 // indirect
@@ -62,8 +61,10 @@ require (
 	github.com/yalue/onnxruntime_go v1.13.0 // indirect
 	golang.org/x/crypto v0.29.0 // indirect
 	golang.org/x/exp v0.0.0-20241108190413-2d47ceb2692f // indirect
+	golang.org/x/net v0.31.0 // indirect
 	golang.org/x/sys v0.27.0 // indirect
-	google.golang.org/protobuf v1.35.2 // indirect
+	golang.org/x/text v0.20.0 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20241015192408-796eee8c2d53 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	k8s.io/klog/v2 v2.130.1 // indirect
 )

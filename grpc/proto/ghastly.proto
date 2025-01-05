@@ -1,0 +1,82 @@
+syntax = "proto3";
+
+package ghastlydb;
+
+option go_package = "github.com/ahhcash/ghastlydb/proto";
+
+service GhastlyDB {
+  rpc Put(PutRequest) returns (PutResponse) {}
+  rpc Get(GetRequest) returns (GetResponse) {}
+  rpc Delete(DeleteRequest) returns (DeleteResponse) {}
+
+  rpc Search(SearchRequest) returns (SearchResponse) {}
+
+  rpc BulkPut(stream PutRequest) returns (BulkPutResponse) {}
+  rpc BulkSearch(SearchRequest) returns (stream SearchResponse) {}
+
+  rpc HealthCheck(HealthCheckRequest) returns (HealthCheckResponse) {}
+}
+
+message PutRequest {
+  string key = 1;
+  string value = 2;
+}
+
+message PutResponse {
+  bool success = 1;
+  string error = 2;
+}
+
+message GetRequest {
+  string key = 1;
+}
+
+message GetResponse {
+  string value = 1;
+  bool found = 2;
+  string error = 3;
+}
+
+message DeleteRequest {
+  string key = 1;
+}
+
+message DeleteResponse {
+  bool success = 1;
+  string error = 2;
+}
+
+message SearchRequest {
+  string query = 1;
+  string metric = 2;
+  int32 limit = 3;
+  float score_threshold = 4;
+}
+
+message SearchResponse {
+  repeated SearchResult results = 1;
+  string error = 2;
+}
+
+message SearchResult {
+  string key = 1;
+  string value = 2;
+  float score = 3;
+}
+
+message BulkPutResponse {
+  int32 processed_count = 1;
+  repeated string failed_keys = 2;
+  string error = 3;
+}
+
+message HealthCheckRequest {}
+
+message HealthCheckResponse {
+  enum ServingStatus {
+    UNKNOWN = 0;
+    SERVING = 1;
+    NOT_SERVING = 2;
+  }
+  ServingStatus status = 1;
+}
