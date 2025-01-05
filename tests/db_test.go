@@ -38,7 +38,7 @@ func (s *DBTestSuite) TestDefaultConfig() {
 	cfg := db.DefaultConfig()
 
 	assert.Equal(s.T(), "./ghastlydb_data", cfg.Path)
-	assert.Equal(s.T(), "colbert", cfg.EmbeddingModel)
+	assert.Equal(s.T(), "openai", cfg.EmbeddingModel)
 	assert.Equal(s.T(), 64*1024*1024, cfg.MemtableSize)
 	assert.Equal(s.T(), "cosine", cfg.Metric)
 }
