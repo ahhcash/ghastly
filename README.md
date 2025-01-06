@@ -1,6 +1,6 @@
 # GhastlyDB - a super lightweight vector database in Go  
 
-![build](https://github.com/ahhcash/ghastly/actions/workflows/build_and_test.yml/badge.svg)
+![build](https://github.com/ahhcash/ghastly/actions/workflows/build_and_deploy.yml/badge.svg)
 [![Coverage Status](https://coveralls.io/repos/github/ahhcash/ghastly/badge.svg?branch=master)](https://coveralls.io/github/ahhcash/ghastly?branch=master)
 
 I've built this as an experiment - to truly understand how databases work. This is only possible if I built it from first principles. 
