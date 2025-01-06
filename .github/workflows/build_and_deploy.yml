@@ -65,28 +65,34 @@ jobs:
   deploy:
     needs: build_and_test
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/master' && github.event_name == 'push'  # Deploy only on push to master
+    if: github.ref == 'refs/heads/master' && github.event_name == 'push'
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install the heroku cli
+      - name: Docker Setup Buildx
+        uses: docker/setup-buildx-action@v3.8.0
+
+
+      - name: Build Docker image
+        run: docker build -t ghastly:latest .
+
+      - name: Install Heroku CLI
+        run: curl https://cli-assets.heroku.com/install.sh | sh
+
+      - name: Login to Heroku
+        env:
+          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+        run: heroku container:login
+
+      - name: Tag and push image
+        env:
+          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
         run: |
-          curl https://cli-assets.heroku.com/install.sh | sh
+          docker tag ghastly:latest registry.heroku.com/${{ secrets.HEROKU_APP_NAME }}/web
+          docker push registry.heroku.com/${{ secrets.HEROKU_APP_NAME }}/web
 
-      - name: Download Tokenizers Library
-        uses: robinraju/release-downloader@v1.11
-        with:
-          latest: 'true'
-          repository: 'daulet/tokenizers'
-          zipBall: 'false'
-          fileName: 'libtokenizers.linux-x86_64.tar.gz'
-          out-file-path: './libs/static/libtokenizers'
-          extract: 'true'
-
-      - name: Deploy to Heroku
-        uses: akhileshns/heroku-deploy@v3.13.15
-        with:
-          heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
-          heroku_app_name: ${{ secrets.HEROKU_APP_NAME }}
-          heroku_email: ${{ secrets.HEROKU_EMAIL }}
+      - name: Release
+        env:
+          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+        run: heroku container:release web -a ${{ secrets.HEROKU_APP_NAME }}
