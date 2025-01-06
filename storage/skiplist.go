@@ -40,11 +40,14 @@ func (s *SkipList) randomLevel() int {
 
 func (s *SkipList) Search(key string) ([]byte, bool) {
 	current := s.head
+
 	for i := s.level; i >= 0; i-- {
-		for current.next[i] != nil && current.key < key {
+		for current.next[i] != nil && current.next[i].key < key {
 			current = current.next[i]
 		}
 	}
+
+	current = current.next[0]
 
 	if current != nil && current.key == key {
 		return current.value, true

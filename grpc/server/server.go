@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"fmt"
 	db2 "github.com/ahhcash/ghastlydb/db"
 	pb "github.com/ahhcash/ghastlydb/grpc/gen/grpc/proto"
 	"google.golang.org/grpc/codes"
@@ -46,6 +47,26 @@ func (s *GhastlyServer) Get(_ context.Context, req *pb.GetRequest) (*pb.GetRespo
 	}, nil
 }
 
+func (s *GhastlyServer) Delete(_ context.Context, req *pb.DeleteRequest) (*pb.DeleteResponse, error) {
+	err := s.db.Delete(req.Key)
+	if err != nil {
+		return &pb.DeleteResponse{
+			Success: false,
+			Error:   fmt.Sprintf("%v", err),
+		}, err
+	}
+
+	return &pb.DeleteResponse{
+		Success: true,
+		Error:   "",
+	}, nil
+}
+
+func (s *GhastlyServer) Exists(_ context.Context, req *pb.ExistsRequest) (*pb.ExistsResponse, error) {
+	exists := s.db.Exists(req.Key)
+	return &pb.ExistsResponse{Exists: exists}, nil
+}
+
 func (s *GhastlyServer) Search(_ context.Context, req *pb.SearchRequest) (*pb.SearchResponse, error) {
 	results, err := s.db.Search(req.Query)
 	if err != nil {
@@ -71,6 +92,18 @@ func (s *GhastlyServer) Search(_ context.Context, req *pb.SearchRequest) (*pb.Se
 	}
 
 	return &pb.SearchResponse{Results: pbResults}, nil
+}
+
+func (s *GhastlyServer) GetConfig(_ context.Context, req *pb.GetConfigRequest) (*pb.GetConfigResponse, error) {
+	return &pb.GetConfigResponse{
+		Config: &pb.DatabaseConfig{
+			MemtableSizeBytes:          0,
+			DataDirectory:              s.db.DBConfig.Path,
+			DefaultSimilarityMetric:    s.db.DBConfig.Metric,
+			DefaultSimilarityThreshold: 0,
+			EmbeddingModel:             s.db.DBConfig.EmbeddingModel,
+		},
+	}, nil
 }
 
 func (s *GhastlyServer) BulkPut(stream pb.GhastlyDB_BulkPutServer) error {

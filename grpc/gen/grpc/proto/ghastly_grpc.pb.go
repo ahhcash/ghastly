@@ -22,10 +22,12 @@ const (
 	GhastlyDB_Put_FullMethodName         = "/ghastlydb.GhastlyDB/Put"
 	GhastlyDB_Get_FullMethodName         = "/ghastlydb.GhastlyDB/Get"
 	GhastlyDB_Delete_FullMethodName      = "/ghastlydb.GhastlyDB/Delete"
+	GhastlyDB_Exists_FullMethodName      = "/ghastlydb.GhastlyDB/Exists"
 	GhastlyDB_Search_FullMethodName      = "/ghastlydb.GhastlyDB/Search"
 	GhastlyDB_BulkPut_FullMethodName     = "/ghastlydb.GhastlyDB/BulkPut"
 	GhastlyDB_BulkSearch_FullMethodName  = "/ghastlydb.GhastlyDB/BulkSearch"
 	GhastlyDB_HealthCheck_FullMethodName = "/ghastlydb.GhastlyDB/HealthCheck"
+	GhastlyDB_GetConfig_FullMethodName   = "/ghastlydb.GhastlyDB/GetConfig"
 )
 
 // GhastlyDBClient is the client API for GhastlyDB service.
@@ -35,10 +37,12 @@ type GhastlyDBClient interface {
 	Put(ctx context.Context, in *PutRequest, opts ...grpc.CallOption) (*PutResponse, error)
 	Get(ctx context.Context, in *GetRequest, opts ...grpc.CallOption) (*GetResponse, error)
 	Delete(ctx context.Context, in *DeleteRequest, opts ...grpc.CallOption) (*DeleteResponse, error)
+	Exists(ctx context.Context, in *ExistsRequest, opts ...grpc.CallOption) (*ExistsResponse, error)
 	Search(ctx context.Context, in *SearchRequest, opts ...grpc.CallOption) (*SearchResponse, error)
 	BulkPut(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[PutRequest, BulkPutResponse], error)
 	BulkSearch(ctx context.Context, in *SearchRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[SearchResponse], error)
 	HealthCheck(ctx context.Context, in *HealthCheckRequest, opts ...grpc.CallOption) (*HealthCheckResponse, error)
+	GetConfig(ctx context.Context, in *GetConfigRequest, opts ...grpc.CallOption) (*GetConfigResponse, error)
 }
 
 type ghastlyDBClient struct {
@@ -73,6 +77,16 @@ func (c *ghastlyDBClient) Delete(ctx context.Context, in *DeleteRequest, opts ..
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(DeleteResponse)
 	err := c.cc.Invoke(ctx, GhastlyDB_Delete_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *ghastlyDBClient) Exists(ctx context.Context, in *ExistsRequest, opts ...grpc.CallOption) (*ExistsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ExistsResponse)
+	err := c.cc.Invoke(ctx, GhastlyDB_Exists_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -131,6 +145,16 @@ func (c *ghastlyDBClient) HealthCheck(ctx context.Context, in *HealthCheckReques
 	return out, nil
 }
 
+func (c *ghastlyDBClient) GetConfig(ctx context.Context, in *GetConfigRequest, opts ...grpc.CallOption) (*GetConfigResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetConfigResponse)
+	err := c.cc.Invoke(ctx, GhastlyDB_GetConfig_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // GhastlyDBServer is the server API for GhastlyDB service.
 // All implementations must embed UnimplementedGhastlyDBServer
 // for forward compatibility.
@@ -138,10 +162,12 @@ type GhastlyDBServer interface {
 	Put(context.Context, *PutRequest) (*PutResponse, error)
 	Get(context.Context, *GetRequest) (*GetResponse, error)
 	Delete(context.Context, *DeleteRequest) (*DeleteResponse, error)
+	Exists(context.Context, *ExistsRequest) (*ExistsResponse, error)
 	Search(context.Context, *SearchRequest) (*SearchResponse, error)
 	BulkPut(grpc.ClientStreamingServer[PutRequest, BulkPutResponse]) error
 	BulkSearch(*SearchRequest, grpc.ServerStreamingServer[SearchResponse]) error
 	HealthCheck(context.Context, *HealthCheckRequest) (*HealthCheckResponse, error)
+	GetConfig(context.Context, *GetConfigRequest) (*GetConfigResponse, error)
 	mustEmbedUnimplementedGhastlyDBServer()
 }
 
@@ -161,6 +187,9 @@ func (UnimplementedGhastlyDBServer) Get(context.Context, *GetRequest) (*GetRespo
 func (UnimplementedGhastlyDBServer) Delete(context.Context, *DeleteRequest) (*DeleteResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
 }
+func (UnimplementedGhastlyDBServer) Exists(context.Context, *ExistsRequest) (*ExistsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Exists not implemented")
+}
 func (UnimplementedGhastlyDBServer) Search(context.Context, *SearchRequest) (*SearchResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Search not implemented")
 }
@@ -172,6 +201,9 @@ func (UnimplementedGhastlyDBServer) BulkSearch(*SearchRequest, grpc.ServerStream
 }
 func (UnimplementedGhastlyDBServer) HealthCheck(context.Context, *HealthCheckRequest) (*HealthCheckResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method HealthCheck not implemented")
+}
+func (UnimplementedGhastlyDBServer) GetConfig(context.Context, *GetConfigRequest) (*GetConfigResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetConfig not implemented")
 }
 func (UnimplementedGhastlyDBServer) mustEmbedUnimplementedGhastlyDBServer() {}
 func (UnimplementedGhastlyDBServer) testEmbeddedByValue()                   {}
@@ -248,6 +280,24 @@ func _GhastlyDB_Delete_Handler(srv interface{}, ctx context.Context, dec func(in
 	return interceptor(ctx, in, info, handler)
 }
 
+func _GhastlyDB_Exists_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ExistsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GhastlyDBServer).Exists(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: GhastlyDB_Exists_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GhastlyDBServer).Exists(ctx, req.(*ExistsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _GhastlyDB_Search_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(SearchRequest)
 	if err := dec(in); err != nil {
@@ -302,6 +352,24 @@ func _GhastlyDB_HealthCheck_Handler(srv interface{}, ctx context.Context, dec fu
 	return interceptor(ctx, in, info, handler)
 }
 
+func _GhastlyDB_GetConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetConfigRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GhastlyDBServer).GetConfig(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: GhastlyDB_GetConfig_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GhastlyDBServer).GetConfig(ctx, req.(*GetConfigRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // GhastlyDB_ServiceDesc is the grpc.ServiceDesc for GhastlyDB service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -322,12 +390,20 @@ var GhastlyDB_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _GhastlyDB_Delete_Handler,
 		},
 		{
+			MethodName: "Exists",
+			Handler:    _GhastlyDB_Exists_Handler,
+		},
+		{
 			MethodName: "Search",
 			Handler:    _GhastlyDB_Search_Handler,
 		},
 		{
 			MethodName: "HealthCheck",
 			Handler:    _GhastlyDB_HealthCheck_Handler,
+		},
+		{
+			MethodName: "GetConfig",
+			Handler:    _GhastlyDB_GetConfig_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{
