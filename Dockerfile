@@ -15,13 +15,20 @@ RUN curl -L -o tokenizers.tar.gz "https://github.com/daulet/tokenizers/releases/
 # Stage 2: Build the application
 FROM golang:1.23 AS builder
 
-# Install build essentials and ONNX Runtime
+# Install build essentials and set up Python environment
 RUN apt-get update && apt-get install -y \
     build-essential \
     pkg-config \
     python3-pip \
-    && pip3 install onnxruntime \
+    python3-venv \
     && rm -rf /var/lib/apt/lists/*
+
+# Create and activate virtual environment for Python dependencies
+RUN python3 -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Install ONNX Runtime in the virtual environment
+RUN pip3 install onnxruntime
 
 # Copy tokenizers library from deps stage
 COPY --from=deps /libs/static/libtokenizers /libs/static/libtokenizers
@@ -44,11 +51,15 @@ RUN make build
 # Stage 3: Final runtime image
 FROM ubuntu:22.04
 
-# Install runtime dependencies
+# Install Python and create virtual environment
 RUN apt-get update && apt-get install -y \
     python3-pip \
-    && pip3 install onnxruntime \
+    python3-venv \
     && rm -rf /var/lib/apt/lists/*
+
+# Copy virtual environment from builder stage
+COPY --from=builder /opt/venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
 
 # Copy the built binary from builder stage
 COPY --from=builder /app/bin/ghastly /app/ghastly
