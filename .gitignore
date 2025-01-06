@@ -11,3 +11,5 @@ libs/static/libtokenizers/*
 !libs/static/libtokenizers/.gitkeep
 
 /models/
+/clients/python/ghastly_client.egg-info/
+**__pycache__**/

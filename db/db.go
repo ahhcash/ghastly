@@ -19,7 +19,7 @@ type DBConfig struct {
 
 type DB struct {
 	store    *storage.Store
-	dbConfig DBConfig
+	DBConfig DBConfig
 }
 
 func initializeEmbeddingModel(model string) (embed.Embedder, error) {
@@ -58,7 +58,7 @@ func OpenDB(cfg DBConfig) (*DB, error) {
 
 	return &DB{
 		store:    store,
-		dbConfig: cfg,
+		DBConfig: cfg,
 	}, nil
 }
 
@@ -70,7 +70,7 @@ func OpenDBWithEmbedder(cfg DBConfig, embedder embed.Embedder) (*DB, error) {
 
 	return &DB{
 		store:    store,
-		dbConfig: cfg,
+		DBConfig: cfg,
 	}, nil
 }
 
@@ -97,5 +97,5 @@ func (db *DB) Exists(key string) bool {
 }
 
 func (db *DB) Search(query string) ([]storage.Result, error) {
-	return db.store.Search(query, db.dbConfig.Metric)
+	return db.store.Search(query, db.DBConfig.Metric)
 }

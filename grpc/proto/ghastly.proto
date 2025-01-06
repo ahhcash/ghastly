@@ -8,6 +8,7 @@ service GhastlyDB {
   rpc Put(PutRequest) returns (PutResponse) {}
   rpc Get(GetRequest) returns (GetResponse) {}
   rpc Delete(DeleteRequest) returns (DeleteResponse) {}
+  rpc Exists(ExistsRequest) returns (ExistsResponse) {}
 
   rpc Search(SearchRequest) returns (SearchResponse) {}
 
@@ -15,6 +16,7 @@ service GhastlyDB {
   rpc BulkSearch(SearchRequest) returns (stream SearchResponse) {}
 
   rpc HealthCheck(HealthCheckRequest) returns (HealthCheckResponse) {}
+  rpc GetConfig(GetConfigRequest) returns (GetConfigResponse) {}
 }
 
 message PutRequest {
@@ -46,6 +48,14 @@ message DeleteResponse {
   string error = 2;
 }
 
+message ExistsRequest {
+  string key = 1;
+}
+
+message ExistsResponse {
+  bool exists = 1;
+}
+
 message SearchRequest {
   string query = 1;
   string metric = 2;
@@ -62,6 +72,22 @@ message SearchResult {
   string key = 1;
   string value = 2;
   float score = 3;
+}
+
+message DatabaseConfig {
+  int64 memtable_size_bytes = 1;
+  string data_directory = 2;
+
+  string default_similarity_metric = 3;  // "cosine", "dot", "l2"
+  float default_similarity_threshold = 5;
+
+  string embedding_model = 6;  // "openai", "nvidia", "colbert"
+}
+
+message GetConfigRequest {}
+
+message GetConfigResponse {
+  DatabaseConfig config = 1;
 }
 
 message BulkPutResponse {
