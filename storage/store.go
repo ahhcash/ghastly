@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/ahhcash/ghastlydb/embed"
 	"github.com/ahhcash/ghastlydb/search"
+	"math"
 	"path/filepath"
 	"sort"
 	"sync"
@@ -117,7 +118,6 @@ func (s *Store) Search(query string, metric string) ([]Result, error) {
 	}
 
 	var scoreFn func([]float64, []float64) float64
-
 	switch metric {
 	case "dot":
 		scoreFn = search.Dot
@@ -129,36 +129,43 @@ func (s *Store) Search(query string, metric string) ([]Result, error) {
 
 	results := make([]Result, 0)
 
+	// Search through SSTables
 	for _, sstable := range s.sstables {
 		for _, key := range sstable.Index {
 			entry, exists, err := sstable.Get(key)
 			if err != nil {
 				return nil, fmt.Errorf("could not fetch key %s from sstable: %v", key, err)
 			}
-			if exists {
+			if exists && !entry.Deleted { // Only process non-deleted entries
 				score := scoreFn(entry.Vector, queryVector)
+				if !math.IsNaN(score) && !math.IsInf(score, 0) {
+					results = append(results, Result{
+						Key:   key,
+						Value: entry.Value,
+						Score: score,
+					})
+				}
+			}
+		}
+	}
+
+	// Search through memtable
+	current := s.memtable.Data.head.next[0]
+	for current != nil {
+		entry, err := DeserializeEntry(current.value)
+		if err != nil {
+			continue
+		}
+		if !entry.Deleted {
+			score := scoreFn(entry.Vector, queryVector)
+			if !math.IsNaN(score) && !math.IsInf(score, 0) {
 				results = append(results, Result{
-					Key:   key,
+					Key:   current.key,
 					Value: entry.Value,
 					Score: score,
 				})
 			}
 		}
-	}
-
-	// search memtable
-	current := s.memtable.Data.head.next[0]
-	for current != nil {
-		entry, err := DeserializeEntry(current.value)
-		if err != nil {
-			fmt.Printf("could not deserialize entry: %v", err)
-		}
-		score := scoreFn(entry.Vector, queryVector)
-		results = append(results, Result{
-			Key:   current.key,
-			Value: entry.Value,
-			Score: score,
-		})
 		current = current.next[0]
 	}
 
