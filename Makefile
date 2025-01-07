@@ -21,7 +21,15 @@ TEST_FLAGS=-v
 PROTO_DIR=grpc/proto
 PROTO_OUT=grpc/gen
 
-.PHONY: all build clean test coverage deps vet fmt lint run help proto
+PYTHON_OUT=clients/python/gen
+NODE_OUT=clients/node/gen
+JAVA_OUT=clients/java/src/main/java
+
+SUPPORTED_LANGS=python node java
+
+LANG?=python
+
+.PHONY: all build clean test coverage deps vet fmt lint run help proto validate-lang client-proto
 
 all: deps vet fmt lint coverage build
 
@@ -70,6 +78,42 @@ proto:
 		   --go-grpc_out=$(PROTO_OUT) --go-grpc_opt=paths=source_relative \
 		   $(PROTO_DIR)/*.proto
 
+validate-lang:
+	@if ! echo "$(SUPPORTED_LANGS)" | grep -w "$(LANG)" > /dev/null; then \
+		echo "Error: Invalid language '$(LANG)'. Supported languages are: $(SUPPORTED_LANGS)"; \
+		exit 1; \
+	fi
+
+client-proto: validate-lang
+	@echo "Generating $(LANG) client stubs..."
+	@mkdir -p $($(shell echo $(LANG) | tr a-z A-Z)_OUT)
+	@case "$(LANG)" in \
+		"python") \
+			python -m grpc_tools.protoc \
+				--proto_path=$(PROTO_DIR) \
+				--python_out=$(PYTHON_OUT) \
+				--grpc_python_out=$(PYTHON_OUT) \
+				$(PROTO_DIR)/*.proto ;; \
+		"node") \
+			grpc_tools_node_protoc \
+				--proto_path=$(PROTO_DIR) \
+				--js_out=import_style=commonjs:$(NODE_OUT) \
+				--grpc_out=grpc_js:$(NODE_OUT) \
+				$(PROTO_DIR)/*.proto ;; \
+		"java") \
+			protoc \
+				--proto_path=$(PROTO_DIR) \
+				--java_out=$(JAVA_OUT) \
+				--grpc-java_out=$(JAVA_OUT) \
+				$(PROTO_DIR)/*.proto ;; \
+		"go") \
+			protoc \
+				--proto_path=$(PROTO_DIR) \
+				--go_out=$(GO_OUT) --go_opt=paths=source_relative \
+				--go-grpc_out=$(GO_OUT) --go-grpc_opt=paths=source_relative \
+				$(PROTO_DIR)/*.proto ;; \
+	esac
+	@echo "Successfully generated $(LANG) client stubs"
 
 help:
 	@echo "Available targets:"
