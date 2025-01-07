@@ -37,6 +37,7 @@ func (s *Server) registerRoutes() {
 	s.router.GET("/health", s.handleHealthCheck)
 
 	// Database operations
+	s.router.GET("/", s.handleHealthCheck)
 	s.router.POST("/v1/documents", s.handlePut)
 	s.router.GET("/v1/documents/:key", s.handleGet)
 	s.router.DELETE("/v1/documents/:key", s.handleDelete)
