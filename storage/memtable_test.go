@@ -1,7 +1,6 @@
-package tests
+package storage
 
 import (
-	"github.com/ahhcash/ghastlydb/storage"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"os"
@@ -12,12 +11,12 @@ import (
 
 type MemtableTestSuite struct {
 	suite.Suite
-	memtable *storage.Memtable
+	memtable *Memtable
 	testPath string
 }
 
 func (s *MemtableTestSuite) SetupTest() {
-	s.memtable = storage.NewMemtable(1024)
+	s.memtable = NewMemtable(1024)
 	s.testPath = "./test_data"
 	_ = os.MkdirAll(s.testPath, 0755)
 }
@@ -32,7 +31,7 @@ func (s *MemtableTestSuite) TestNewMemtable() {
 }
 
 func (s *MemtableTestSuite) TestPutAndGet() {
-	entry := storage.Entry{
+	entry := Entry{
 		Value:     "test value",
 		Vector:    []float64{1.0, 2.0, 3.0},
 		Deleted:   false,
@@ -56,13 +55,13 @@ func (s *MemtableTestSuite) TestPutAndGet() {
 }
 
 func (s *MemtableTestSuite) TestUpdateExisting() {
-	entry1 := storage.Entry{
+	entry1 := Entry{
 		Value:     "initial value",
 		Vector:    []float64{1.0, 2.0},
 		Timestamp: time.Now().UnixMilli(),
 		Deleted:   false,
 	}
-	entry2 := storage.Entry{
+	entry2 := Entry{
 		Value:     "updated value",
 		Vector:    []float64{3.0, 4.0},
 		Timestamp: time.Now().UnixMilli(),
@@ -87,11 +86,11 @@ func (s *MemtableTestSuite) TestUpdateExisting() {
 }
 
 func (s *MemtableTestSuite) TestFlushToDisk() {
-	smallMemtable := storage.NewMemtable(32) // Small size to force flush
+	smallMemtable := NewMemtable(32) // Small size to force flush
 
 	// Add entries until flush
 	for i := 0; i < 100; i++ {
-		entry := storage.Entry{
+		entry := Entry{
 			Value:     "test value",
 			Vector:    []float64{1.0, 2.0},
 			Timestamp: time.Now().UnixMilli(),
@@ -112,7 +111,7 @@ func (s *MemtableTestSuite) TestFlushToDisk() {
 }
 
 func (s *MemtableTestSuite) TestClear() {
-	entry := storage.Entry{
+	entry := Entry{
 		Value:  "test value",
 		Vector: []float64{1.0, 2.0},
 	}
@@ -132,19 +131,19 @@ func (s *MemtableTestSuite) TestClear() {
 }
 
 func (s *MemtableTestSuite) TestSerializeDeserialize() {
-	original := storage.Entry{
+	original := Entry{
 		Value:   "test value",
 		Vector:  []float64{1.0, 2.0, 3.0},
 		Deleted: false,
 	}
 
 	// Serialize
-	serialized, err := storage.SerializeEntry(original)
+	serialized, err := SerializeEntry(original)
 	assert.NoError(s.T(), err)
 	assert.NotEmpty(s.T(), serialized)
 
 	// Deserialize
-	deserialized, err := storage.DeserializeEntry(serialized)
+	deserialized, err := DeserializeEntry(serialized)
 	assert.NoError(s.T(), err)
 	assert.Equal(s.T(), original.Value, deserialized.Value)
 	assert.Equal(s.T(), original.Vector, deserialized.Vector)

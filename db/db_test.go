@@ -1,8 +1,7 @@
-package tests
+package db
 
 import (
-	"github.com/ahhcash/ghastlydb/db"
-	"github.com/ahhcash/ghastlydb/tests/mocks"
+	"github.com/ahhcash/ghastlydb/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -35,7 +34,7 @@ func (s *DBTestSuite) TearDownTest() {
 }
 
 func (s *DBTestSuite) TestDefaultConfig() {
-	cfg := db.DefaultConfig()
+	cfg := DefaultConfig()
 
 	assert.Equal(s.T(), "./ghastlydb_data", cfg.Path)
 	assert.Equal(s.T(), "openai", cfg.EmbeddingModel)
@@ -44,14 +43,14 @@ func (s *DBTestSuite) TestDefaultConfig() {
 }
 
 func (s *DBTestSuite) TestOpenDB() {
-	cfg := db.DBConfig{
+	cfg := DBConfig{
 		Metric:         "dot",
 		EmbeddingModel: "nvidia",
 		MemtableSize:   1024,
 		Path:           s.testPath,
 	}
 
-	database, err := db.OpenDB(cfg)
+	database, err := OpenDB(cfg)
 	require.NoError(s.T(), err)
 	assert.NotNil(s.T(), database)
 }
@@ -63,14 +62,14 @@ func (s *DBTestSuite) TestOpenDBWithEmbedder() {
 		nil,
 	)
 
-	cfg := db.DBConfig{
+	cfg := DBConfig{
 		Metric:         "dot",
 		EmbeddingModel: "nvidia",
 		MemtableSize:   1024,
 		Path:           s.testPath,
 	}
 
-	db2, err := db.OpenDBWithEmbedder(cfg, &mockEmbedder)
+	db2, err := OpenDBWithEmbedder(cfg, &mockEmbedder)
 	require.NoError(s.T(), err)
 	assert.NotNil(s.T(), db2)
 }
@@ -82,14 +81,14 @@ func (s *DBTestSuite) TestPutAndGet() {
 		nil,
 	)
 
-	cfg := db.DBConfig{
+	cfg := DBConfig{
 		Path:           s.testPath,
 		MemtableSize:   1024,
 		Metric:         "cosine",
 		EmbeddingModel: "openai",
 	}
 
-	database, err := db.OpenDBWithEmbedder(cfg, &mockEmbedder)
+	database, err := OpenDBWithEmbedder(cfg, &mockEmbedder)
 	require.NoError(s.T(), err)
 
 	err = database.Put("test_key", "test_value")
@@ -110,14 +109,14 @@ func (s *DBTestSuite) TestDelete() {
 		nil,
 	)
 
-	cfg := db.DBConfig{
+	cfg := DBConfig{
 		Path:           s.testPath,
 		MemtableSize:   1024,
 		Metric:         "cosine",
 		EmbeddingModel: "openai",
 	}
 
-	database, err := db.OpenDBWithEmbedder(cfg, &mockEmbedder)
+	database, err := OpenDBWithEmbedder(cfg, &mockEmbedder)
 	require.NoError(s.T(), err)
 
 	err = database.Put("test_key", "test_value")
@@ -137,14 +136,14 @@ func (s *DBTestSuite) TestSearch() {
 		nil,
 	)
 
-	cfg := db.DBConfig{
+	cfg := DBConfig{
 		Path:           s.testPath,
 		MemtableSize:   1024,
 		Metric:         "cosine",
 		EmbeddingModel: "openai",
 	}
 
-	database, err := db.OpenDBWithEmbedder(cfg, &mockEmbedder)
+	database, err := OpenDBWithEmbedder(cfg, &mockEmbedder)
 	require.NoError(s.T(), err)
 
 	testData := map[string]string{
