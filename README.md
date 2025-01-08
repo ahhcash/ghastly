@@ -93,18 +93,7 @@ This creates binaries for:
 - Windows (amd64)
 
 ## Usage 🧑‍💻
-GhastlyDB provides a REPL interface for interactive use:
-```bash
-./bin/ghastly
-```
-Available commands:
-
-* `put <key> <value>` - Store a key-value pair
-* `get <key>` - Retrieve a value by key
-* `search <query>` - Perform semantic search
-* `delete <key>` - Deletes a key
-* `help` - Provides a list of valid commands
-* `exit` - Exit the REPL
+Building from source / using the docker container is the best way to get started. You can generate gRPC stubs or just use the REST API to perform DB operations!
 
 
 ## Configuration
