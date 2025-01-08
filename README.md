@@ -1,10 +1,10 @@
-# GhastlyDB - a super lightweight vector database in Go  
+# GhastlyDB - a super lightweight vector database in Go
 
 ![build](https://github.com/ahhcash/ghastly/actions/workflows/build_and_deploy.yml/badge.svg)
 [![Coverage Status](https://coveralls.io/repos/github/ahhcash/ghastly/badge.svg?branch=master)](https://coveralls.io/github/ahhcash/ghastly?branch=master)
 
-I've built this as an experiment - to truly understand how databases work. This is only possible if I built it from first principles. 
-GhastlyDB is the result of this experiment, and I'm super excited about how it turned out. (Still a lot more to come!)
+I've built this as an experiment - to truly understand how databases work. This is only possible if I built it from first principles.
+GhastlyDB is the result of this experiment, and I'm super excited about how it turned out.
 
 ## Features 💪
 
@@ -45,7 +45,7 @@ GhastlyDB is the result of this experiment, and I'm super excited about how it t
 ### Local inference specific dependencies
 - ONNX Runtime (for local embedding model inference)
 - Make sure `libtokenizers.a` is present inside `/libs/static/libotkenizers`. You can build it from [source](https://github.com/daulet/tokenizers)
-or find it in the [releases](https://github.com/daulet/tokenizers/releases/) page of HuggingFace's tokenizers port for Go. (shoutout @daulet)
+  or find it in the [releases](https://github.com/daulet/tokenizers/releases/) page of HuggingFace's tokenizers port for Go. (shoutout @daulet)
 
 ### Platform-Specific Dependencies
 
@@ -89,7 +89,7 @@ make build-all
 
 This creates binaries for:
 - Linux (amd64, arm64)
-- macOS (amd64, arm64) 
+- macOS (amd64, arm64)
 - Windows (amd64)
 
 ## Usage 🧑‍💻
@@ -102,6 +102,7 @@ Available commands:
 * `put <key> <value>` - Store a key-value pair
 * `get <key>` - Retrieve a value by key
 * `search <query>` - Perform semantic search
+* `delete <key>` - Deletes a key
 * `help` - Provides a list of valid commands
 * `exit` - Exit the REPL
 
@@ -114,7 +115,7 @@ Config{
 Path:           "./ghastlydb_data",
 MemtableSize:   64 * 1024 * 1024, // 64MB
 Metric:         "cosine",
-EmbeddingModel: "colbert",
+EmbeddingModel: "openai",
 }
 ```
 
@@ -152,11 +153,11 @@ L2 distance for Euclidean space
 
 ### Embedding Layer
 
-OpenAI: Cloud-based embeddings using text-embedding-3-small
-NVIDIA: Cloud-based embeddings using nv-embedqa-mistral-7b-v2
-ColBERT: Local embeddings using ONNX runtime
+**OpenAI**: Cloud-based embeddings using text-embedding-3-small <br>
+**NVIDIA**: Cloud-based embeddings using nv-embedqa-mistral-7b-v2 <br>
+**ColBERT**: Local inference using ONNX runtime, libtokenizers on colBERT-ir/v2
 
-## Development 
+## Development
 ### Testing
 ```bash
 make test        # Run tests
@@ -171,59 +172,82 @@ make fmt         # Format code
 
 ## Directory Structure
 ```
-└── ghastly/
-    ├── main.go
-    ├── search/
-    │   ├── l2.go
-    │   ├── dot.go
-    │   └── cosine.go
-    ├── tests/
-    │   ├── mocks/
-    │   │   └── embedder.go
-    │   ├── search_test.go
-    │   ├── db_test.go
-    │   ├── memtable_test.go
-    │   └── store_test.go
-    ├── .github/
-    │   └── workflows/
-    │       └── build_and_test.yml
-    ├── go.sum
-    ├── Makefile
-    ├── .golangci.yml
-    ├── embed/
-    │   ├── local/
-    │   │   └── colbert/
-    │   │       ├── platform_specific.go
-    │   │       ├── config.go
-    │   │       ├── linux.go
-    │   │       ├── windows.go
-    │   │       ├── darwin.go
-    │   │       └── embed.go
-    │   ├── nvidia/
-    │   │   ├── types.go
-    │   │   └── embed.go
-    │   ├── openai/
-    │   │   ├── types.go
-    │   │   └── embed.go
-    │   └── embedder.go
-    ├── libs/
-    │   └── static/
-    │       └── libtokenizers/
-    │           └── .gitkeep
-    ├── cmd/
-    │   └── root.go
-    ├── go.mod
-    ├── storage/
-    │   ├── store.go
-    │   ├── memtable.go
-    │   ├── sstable.go
-    │   └── skiplist.go
-    ├── README.md
-    └── db/
-        └── db.go
+Directory structure:
+└── ahhcash-ghastly/
+├── README.md
+├── Dockerfile
+├── Makefile
+├── go.mod
+├── go.sum
+├── .golangci.yml
+├── clients/
+│   └── python/
+│       ├── __init__.py
+│       ├── client.py
+│       ├── setup.py
+│       └── test_client.py
+├── cmd/
+│   └── main.go
+├── db/
+│   ├── db.go
+│   └── db_test.go
+├── embed/
+│   ├── embedder.go
+│   ├── local/
+│   │   └── colbert/
+│   │       ├── config.go
+│   │       ├── darwin.go
+│   │       ├── embed.go
+│   │       ├── linux.go
+│   │       ├── platform_specific.go
+│   │       └── windows.go
+│   ├── nvidia/
+│   │   ├── embed.go
+│   │   └── types.go
+│   └── openai/
+│       ├── embed.go
+│       └── types.go
+├── grpc/
+│   ├── gen/
+│   │   └── grpc/
+│   │       └── proto/
+│   │           ├── ghastly.pb.go
+│   │           └── ghastly_grpc.pb.go
+│   ├── proto/
+│   │   └── ghastly.proto
+│   └── server/
+│       └── server.go
+├── http/
+│   └── server/
+│       └── server.go
+├── index/
+│   ├── connections.go
+│   ├── hnsw.go
+│   └── search.go
+├── libs/
+│   └── static/
+│       └── libtokenizers/
+│           └── .gitkeep
+├── mocks/
+│   └── embedder.go
+├── search/
+│   ├── cosine.go
+│   ├── dot.go
+│   ├── l2.go
+│   └── metrics_test.go
+├── storage/
+│   ├── memtable.go
+│   ├── memtable_test.go
+│   ├── skiplist.go
+│   ├── skiplist_test.go
+│   ├── sstable.go
+│   ├── store.go
+│   └── store_test.go
+└── .github/
+└── workflows/
+└── build_and_deploy.yml
 
 ```
-
 ## Contributing 🙏
 
 I would absolutely love any feedback / contributions! Please open a PR, and I'll gladly take a look :)
