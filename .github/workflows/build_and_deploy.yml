@@ -2,9 +2,9 @@ name: GitHub Actions
 
 on:
   push:
-    branches: [ "master" ]
+    branches: ["master"]
   pull_request:
-    branches: [ "master" ]
+    branches: ["master"]
 
 env:
   REGISTRY: ghcr.io
@@ -20,7 +20,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v4
         with:
-          go-version: '1.23'
+          go-version: "1.23"
           cache: true
 
       - name: Install System Dependencies
@@ -34,7 +34,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install onnxruntime
-          
+
       - name: Verify ONNX runtime installed
         run: |
           python -c "import onnxruntime; print(f'ONNX Runtime Version: {onnxruntime.__version__}')"
@@ -42,12 +42,12 @@ jobs:
       - name: release-downloader
         uses: robinraju/release-downloader@v1.11
         with:
-          latest: 'true'
-          repository: 'daulet/tokenizers'
-          zipBall: 'false'
-          fileName: 'libtokenizers.linux-x86_64.tar.gz'
-          out-file-path: './libs/static/libtokenizers'
-          extract: 'true'
+          latest: "true"
+          repository: "daulet/tokenizers"
+          zipBall: "false"
+          fileName: "libtokenizers.linux-x86_64.tar.gz"
+          out-file-path: "./libs/static/libtokenizers"
+          extract: "true"
 
       - name: Install linter
         uses: golangci/golangci-lint-action@v6.1.1
@@ -65,34 +65,6 @@ jobs:
         env:
           COVERALLS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: goveralls -coverprofile=coverage.out -service=github
-
-  deploy:
-    needs: build_and_test
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/master' && github.event_name == 'push'
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install Heroku CLI
-        run: curl https://cli-assets.heroku.com/install.sh | sh
-
-      - name: Login to Heroku
-        env:
-          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
-        run: heroku container:login
-
-      - name: Set Heroku Stack to Container
-        env:
-          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
-        run: heroku stack:set container -a ${{ secrets.HEROKU_APP_NAME }}
-
-      - name: Build and deploy
-        env:
-          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
-        run: |
-          heroku container:push web -a ${{ secrets.HEROKU_APP_NAME }}
-          heroku container:release web -a ${{ secrets.HEROKU_APP_NAME }}
 
   publish:
     needs: build_and_test
@@ -134,6 +106,7 @@ jobs:
         with:
           context: .
           push: true
+          platforms: linux/amd64,linux/arm64
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
